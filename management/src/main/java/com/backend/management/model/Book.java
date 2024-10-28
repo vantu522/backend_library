@@ -2,7 +2,7 @@ package com.backend.management.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
+import java.util.List;
 @Document(collection = "books")
 public class Book {
     @Id
@@ -12,6 +12,7 @@ public class Book {
     private String author;
     private Integer publicationYear;
     private Category category;
+    private List<String> subCategoryNames;
     private Integer quality;
     private Boolean availability;
 
