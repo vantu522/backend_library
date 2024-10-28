@@ -38,24 +38,24 @@ public class BookService {
         bookRepo.deleteById(id);
     }
 
-    public List<Book> findBookByName(String name) {
-        return bookRepo.findByNameOfBook(name);
+    public List<Book> findByName(String name) {
+        return bookRepo.findByName(name); // Gọi phương thức tìm kiếm trong BookRepo
     }
-    public  List<Book> findBookByAuthor(String author) {
-        return bookRepo.findByNameOfAuthor(author);
-    }
-    public List<Book> findBookByCategory(String subCategoryName) {
-        return bookRepo.findBySubCategory(subCategoryName);
-    }
-    public  List<Book> findBookByPublicationYear (Integer publicationYear) {
-        return bookRepo.findByPublicationYear(publicationYear);
-    }
-    public Boolean isBookAvailable (String idBook) {
-        Optional<Book> book = bookRepo.findById(idBook);
-        return book.map(Book::getAvailability).orElse(false);
-    }
-    public Book getBookIdOrThrow (String idBook) {
-        return bookRepo.findById(idBook)
-                .orElseThrow(() -> new BookNotFoundException("Book with id: "+ idBook +  " is not found"));
-    }
+//    public  List<Book> findBookByAuthor(String author) {
+//        return bookRepo.findByAuthor(author);
+//    }
+//    public List<Book> findBookByCategory(String subCategoryName) {
+//        return bookRepo.findBySubCategory(subCategoryName);
+//    }
+//    public  List<Book> findBookByPublicationYear (Integer publicationYear) {
+//        return bookRepo.findByPublicationYear(publicationYear);
+//    }
+//    public Boolean isBookAvailable (String idBook) {
+//        Optional<Book> book = bookRepo.findById(idBook);
+//        return book.map(Book::getAvailability).orElse(false);
+//    }
+//    public Book getBookIdOrThrow (String idBook) {
+//        return bookRepo.findById(idBook)
+//                .orElseThrow(() -> new BookNotFoundException("Book with id: "+ idBook +  " is not found"));
+//    }
 }

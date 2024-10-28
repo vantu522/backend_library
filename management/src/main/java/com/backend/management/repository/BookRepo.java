@@ -8,12 +8,12 @@ import java.util.List;
 @Repository
 public interface BookRepo extends MongoRepository<Book, String> {
     // Tim sach theo ten
-    List<Book> findByNameOfBook( String name);
-    //Tim sach theo ten tac gia
-    List<Book> findByNameOfAuthor (String author);
-    //Tim sach theo nam xuat ban
-    List<Book> findByPublicationYear (Integer year);
-    // Tim sach theo the loai
-    List<Book> findBySubCategory(String subCategoryNames);
+    List<Book> findByName( String name);
+//    //Tim sach theo ten tac gia
+//    List<Book> findByAuthor(String author);
+//    //Tim sach theo nam xuat ban
+//    List<Book> findByPublicationYear (Integer publicationYear);
+//    // Tim sach theo the loai
+//    List<Book> findBySubCategory(String subCategoryNames);
 
 }

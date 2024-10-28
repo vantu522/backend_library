@@ -38,4 +38,10 @@ public class BookController {
     public void deleteBook(@PathVariable String id) {
         bookService.deleteBook(id);
     }
+
+
+    @GetMapping("/search")
+    public List<Book> searchBooksByName(@RequestParam String name) {
+        return bookService.findByName(name); // Gọi phương thức trong BookService
+    }
 }
