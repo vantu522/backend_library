@@ -14,18 +14,26 @@ public class BookService {
     @Autowired
     private BookRepo bookRepo;
 
+    // lay tat ca cac sach
     public List<Book> getAllBooks() {
         return bookRepo.findAll();
     }
 
+    //lay sach theo id
     public Optional<Book> getBookById(String id) {
         return bookRepo.findById(id);
     }
 
+    public List<Book> searchBooks(String name, String author, String category){
+        if()
+    }
+
+    //them sach
     public Book addBook(Book book) {
         return bookRepo.save(book);
     }
 
+    // lay sach theo id va cap nhat sach
     public Book updateBook(String id, Book updatedBook) {
         if (bookRepo.existsById(id)) {
             updatedBook.setIdBook(id);
@@ -33,29 +41,10 @@ public class BookService {
         }
         return null;
     }
-
+    // xoa sach theo id
     public void deleteBook(String id) {
         bookRepo.deleteById(id);
     }
 
-    public List<Book> findByName(String name) {
-        return bookRepo.findByName(name); // Gọi phương thức tìm kiếm trong BookRepo
-    }
-//    public  List<Book> findBookByAuthor(String author) {
-//        return bookRepo.findByAuthor(author);
-//    }
-//    public List<Book> findBookByCategory(String subCategoryName) {
-//        return bookRepo.findBySubCategory(subCategoryName);
-//    }
-//    public  List<Book> findBookByPublicationYear (Integer publicationYear) {
-//        return bookRepo.findByPublicationYear(publicationYear);
-//    }
-//    public Boolean isBookAvailable (String idBook) {
-//        Optional<Book> book = bookRepo.findById(idBook);
-//        return book.map(Book::getAvailability).orElse(false);
-//    }
-//    public Book getBookIdOrThrow (String idBook) {
-//        return bookRepo.findById(idBook)
-//                .orElseThrow(() -> new BookNotFoundException("Book with id: "+ idBook +  " is not found"));
-//    }
+
 }

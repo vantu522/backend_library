@@ -3,23 +3,14 @@ package com.backend.management.model;
 import java.util.List;
 
 public class Category {
-    private String id;
     private String name;
-    private List<Category> subCategories;
+    private List<Category> smallCategory;
 
-    public Category(String id, String name, List<Category> subCategories) {
-        this.id = id;
+    public Category( String name, List<Category> smallCategory) {
         this.name = name;
-        this.subCategories = subCategories;
+        this.smallCategory = smallCategory;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;
@@ -29,11 +20,11 @@ public class Category {
         this.name = name;
     }
 
-    public List<Category> getSubCategories() {
-        return subCategories;
+    public List<Category> getSmallCategory() {
+        return smallCategory;
     }
 
-    public void setSubCategories(List<Category> subCategories) {
-        this.subCategories = subCategories;
+    public void setSmallCategory(List<Category> smallCategory) {
+        this.smallCategory = smallCategory;
     }
 }

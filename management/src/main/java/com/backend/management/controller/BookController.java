@@ -41,7 +41,12 @@ public class BookController {
 
 
     @GetMapping("/search")
-    public List<Book> searchBooksByName(@RequestParam String name) {
-        return bookService.findByName(name); // Gọi phương thức trong BookService
+    public List<Book> searchBooks(@RequestParam(required = false) String name,
+                                  @RequestParam(required = false) String author,
+                                    @RequestParam(required = false) String category)
+    {
+        return bookService.searchBooks(name,author,category); // Gọi phương thức trong BookService
     }
+
+
 }
