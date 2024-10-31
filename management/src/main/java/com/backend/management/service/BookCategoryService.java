@@ -24,4 +24,15 @@ public class BookCategoryService {
                 .collect(Collectors.toList());
         return bigCategories;
     }
+
+    public List<String> getSmallCategories(String bigCategoryName){
+        List<Book> books = bookRepo.findAll();
+
+        return books.stream()
+                .flatMap(book -> book.getBigCategory().stream())
+                .filter(bigCategory ->bigCategory.getName().equalsIgnoreCase(bigCategoryName))
+                .flatMap(bigCategory -> bigCategory.getSmallCategory().stream())
+                .distinct()
+                .collect((Collectors.toList()));
+    }
 }

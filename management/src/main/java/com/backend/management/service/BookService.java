@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class BookService {
@@ -53,6 +54,15 @@ public class BookService {
     // xoa sach theo id
     public void deleteBook(String idBook) {
         bookRepo.deleteById(idBook);
+    }
+
+    public List<Book> getBooksBySubCategory(String subCategoryName){
+        return bookRepo.findAll().stream()
+                .filter(book -> book.getBigCategory().stream()
+                        .anyMatch(bigCategory -> bigCategory.getSmallCategory().contains(subCategoryName)))
+                .collect(Collectors.toList());
+
+
     }
 
 }
