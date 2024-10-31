@@ -7,10 +7,14 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 @Repository
 public interface BookRepo extends MongoRepository<Book, String> {
+
     // Tim sach theo ten
-    List<Book> findByName( String name);
+    List<Book> findBookByName( String name);
     // tim sach theo tac gia
-    List<Book> findByAuthor ( String author);
+    List<Book> findBookByAuthor ( String author);
+    // tim sach dua tren tac gia va the loai
+    List<Book> findBookByAuthorAndName(String author, String name);
+
 
 
 }

@@ -1,6 +1,5 @@
 package com.backend.management.service;
 
-
 import com.backend.management.model.Member;
 import com.backend.management.repository.MemberRepo;
 import org.springframework.beans.factory.annotation.Autowired;

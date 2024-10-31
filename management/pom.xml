@@ -17,14 +17,7 @@
 		<artifactId>spring-boot-starter-data-jpa</artifactId>
 	</dependency>
 
-	<!-- Dependency cho H2 Database (hoặc cơ sở dữ liệu SQL khác) -->
-	<dependency>
-		<groupId>com.h2database</groupId>
-		<artifactId>h2</artifactId>
-		<scope>runtime</scope>
-	</dependency>
-
-	<!-- Dependency cho Lombok -->
+		<!-- Dependency cho Lombok -->
 	<dependency>
 		<groupId>org.projectlombok</groupId>
 		<artifactId>lombok</artifactId>
