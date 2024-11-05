@@ -1,24 +1,24 @@
 package com.backend.management.model;
 
+import lombok.Getter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 
+@Getter
 @Document(collection = "members")
 public class Member extends Person {
     @Id
     private String memberId;
-    private MembershipType Type;
     private List<Transaction> transactions;
-    private int quota;
+    private int booksBorrowed;
 
-    public Member(String name, String email, String phoneNumber, String address, String memberId, MembershipType type, List<Transaction> transactions, int quota) {
+    public Member(String name, String email, String phoneNumber, String address, String memberId, List<Transaction> transactions, int booksBorrowed) {
         super(name, email, phoneNumber, address);
         this.memberId = memberId;
-        Type = type;
         this.transactions = transactions;
-        this.quota = quota;
+        this.booksBorrowed = booksBorrowed;
     }
 
     public String getMemberId() {
@@ -29,14 +29,6 @@ public class Member extends Person {
         this.memberId = memberId;
     }
 
-    public MembershipType getType() {
-        return Type;
-    }
-
-    public void setType(MembershipType type) {
-        Type = type;
-    }
-
     public List<Transaction> getTransactions() {
         return transactions;
     }
@@ -45,11 +37,11 @@ public class Member extends Person {
         this.transactions = transactions;
     }
 
-    public int getQuota() {
-        return quota;
+    public int getBooksBorrowed() {
+        return booksBorrowed;
     }
 
-    public void setQuota(int quota) {
-        this.quota = quota;
+    public void setBooksBorrowed(int booksBorrowed) {
+        this.booksBorrowed = booksBorrowed;
     }
 }

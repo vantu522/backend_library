@@ -27,6 +27,7 @@ public class BookController {
         List<Book> books= bookService.getAllBooks();
         return ResponseEntity.ok(books);
     }
+
     //lay sach theo id
     @GetMapping("/{idBook}")
     public Optional<Book> getBookById(@PathVariable String idBook) {
@@ -71,15 +72,27 @@ public class BookController {
     }
 
     @GetMapping("/categories/{bigCategoryName}/subcategories")
-    public ResponseEntity<List<String>> getSmallCategories(@PathVariable String bigCategoryName){
-        List<String> smallCategories = bookCategoryService.getSmallCategories(bigCategoryName);
-        return ResponseEntity.ok(smallCategories);
+    public ResponseEntity<List<String>> getSmallCategories(@PathVariable String bigCategoryName) {
+        try {
+            List<String> smallCategories = bookCategoryService.getSmallCategories(bigCategoryName);
+            return ResponseEntity.ok(smallCategories);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
+
+
 
     @GetMapping("/categories/{subCategoryName}/books")
     public ResponseEntity<List<Book>> getBooksBySubCategory(@PathVariable String subCategoryName){
         List<Book> books = bookService.getBooksBySubCategory(subCategoryName);
         return ResponseEntity.ok(books);
+    }
+
+    @GetMapping("/{idBook}/availability")
+    public boolean checkAvaibility(@PathVariable String idBook){
+        return bookService.isBookAvailable(idBook);
     }
 
 

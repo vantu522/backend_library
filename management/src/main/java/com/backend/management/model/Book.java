@@ -16,7 +16,7 @@ public class Book {
     private List<String> author;
     private Integer publicationYear;
     private List<BookCategory> bigCategory;
-    private Integer quality;
+    private Integer quantity;
     private Boolean availability;
     private String img;
     private String nxb;
@@ -27,14 +27,14 @@ public class Book {
     public Book() {
     }
 
-    public Book(String idBook, String name, String description, List<String> author, Integer publicationYear, List<BookCategory> bigCategory , Integer quality, Boolean availability, String img,String nxb) {
+    public Book(String idBook, String name, String description, List<String> author, Integer publicationYear, List<BookCategory> bigCategory , Integer quantity, Boolean availability, String img,String nxb) {
         this.idBook = idBook;
         this.name = name;
         this.description = description;
         this.author = new ArrayList<>(author != null ? author : new ArrayList<>());
         this.publicationYear = publicationYear;
         this.bigCategory = new ArrayList<>(bigCategory != null ? bigCategory : new ArrayList<>());
-        this.quality = quality;
+        this.quantity = quantity;
         this.availability = availability;
         this.img=img;
         this.nxb=nxb;
@@ -43,7 +43,6 @@ public class Book {
     public void setIdBook(String idBook) {
         this.idBook = idBook;
     }
-
 
     public void setName(String name) {
         this.name = name;
@@ -65,8 +64,8 @@ public class Book {
         this.bigCategory = bigCategory;
     }
 
-    public void setQuality(Integer quality) {
-        this.quality = quality;
+    public void setQuality(Integer quantity) {
+        this.quantity = quantity;
     }
 
 
@@ -81,4 +80,6 @@ public class Book {
     public void setAvailability(Boolean availability) {
         this.availability = availability;
     }
+
+
 }
