@@ -42,8 +42,10 @@ public class BookController {
 
     //cap nhat sach theo id
     @PutMapping("/update/{idBook}")
-    public Book updateBook(@PathVariable String idBook, @RequestBody Book updatedBook) {
-        return bookService.updateBook(idBook, updatedBook);
+    public ResponseEntity<Book> updateBook(@PathVariable String idBook, @RequestBody Book updatedBook) {
+        Book book = bookService.updateBook(idBook,updatedBook);
+        return ResponseEntity.ok(book);
+
     }
 
     // xoa sach theo id

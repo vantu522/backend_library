@@ -1,5 +1,6 @@
 package com.backend.management.service;
 
+import com.backend.management.exception.ResourceNotFoundException;
 import com.backend.management.model.Book;
 import com.backend.management.repository.BookRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,13 +53,43 @@ public class BookService {
     }
 
     // lay sach theo id va cap nhat sach
-    public Book updateBook(String idBook, Book updatedBook) {
-        if (bookRepo.existsById(idBook)) {
-            updatedBook.setIdBook(idBook);
-            return bookRepo.save(updatedBook);
+   public Book updateBook(String idBook, Book updatedBook){
+        Book existingBook = bookRepo.findByIdBook(idBook)
+                .orElseThrow(() -> new ResourceNotFoundException("book not found with id"+ idBook));
+        if(updatedBook.getIdBook() != null){
+            existingBook.setIdBook(updatedBook.getIdBook());
         }
-        return null;
-    }
+        if(updatedBook.getName() != null){
+            existingBook.setName(updatedBook.getName());
+        }
+        if(updatedBook.getAuthor() != null){
+            existingBook.setAuthor(updatedBook.getAuthor());
+        }
+        if(updatedBook.getDescription() != null){
+            existingBook.setDescription(updatedBook.getDescription());
+       }
+        if(updatedBook.getPublicationYear() != null){
+            existingBook.setPublicationYear(updatedBook.getPublicationYear());
+        }
+        if (updatedBook.getBigCategory() != null){
+            existingBook.setCategory(updatedBook.getBigCategory());
+        }
+        if(updatedBook.getQuantity() != null){
+            existingBook.setQuality(updatedBook.getQuantity());
+        }
+        if (updatedBook.getAvailability() != null){
+            existingBook.setAvailability(updatedBook.getAvailability());
+        }
+        if(updatedBook.getNxb() != null){
+            existingBook.setNxb(updatedBook.getNxb());
+        }
+
+        return bookRepo.save(existingBook);
+
+   }
+
+
+
     // xoa sach theo id
     public void deleteBook(String idBook) {
         bookRepo.deleteById(idBook);

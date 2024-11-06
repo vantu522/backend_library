@@ -7,19 +7,19 @@ public class BookCategory {
     private String name;
     private List<String> smallCategory;
 
-    private String slug;
+//    private String slug;
 
     public BookCategory() {
         this.smallCategory = new ArrayList<>();
     }
 
-    public String getSlug() {
-        return slug;
-    }
-
-    public void setSlug(String slug) {
-        this.slug = slug;
-    }
+//    public String getSlug() {
+//        return slug;
+//    }
+//
+//    public void setSlug(String slug) {
+//        this.slug = slug;
+//    }
 
     public String getName() {
         return name;
