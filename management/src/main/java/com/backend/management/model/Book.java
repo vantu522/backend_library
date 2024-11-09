@@ -16,7 +16,7 @@ public class Book {
     private List<String> author;
     private Integer publicationYear;
     private List<BookCategory> bigCategory;
-    private Integer quantity;
+    private Integer quatity;
     private Boolean availability;
     private String img;
     private String nxb;
@@ -27,19 +27,57 @@ public class Book {
     public Book() {
     }
 
-    public Book(String idBook, String name, String description, List<String> author, Integer publicationYear, List<BookCategory> bigCategory , Integer quantity, Boolean availability, String img,String nxb) {
+    public Book(String idBook, String name, String description, List<String> author, Integer publicationYear, List<BookCategory> bigCategory , Integer quatity, Boolean availability, String img,String nxb) {
         this.idBook = idBook;
         this.name = name;
         this.description = description;
         this.author = new ArrayList<>(author != null ? author : new ArrayList<>());
         this.publicationYear = publicationYear;
         this.bigCategory = new ArrayList<>(bigCategory != null ? bigCategory : new ArrayList<>());
-        this.quantity = quantity;
+        this.quatity = quatity;
         this.availability = availability;
         this.img=img;
         this.nxb=nxb;
     }
+    public String getIdBook() {
+        return idBook;
+    }
 
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public List<String> getAuthor() {
+        return author;
+    }
+
+    public Integer getPublicationYear() {
+        return publicationYear;
+    }
+
+    public List<BookCategory> getCategory() {
+        return bigCategory;
+    }
+
+    public Integer getQuality() {
+        return quatity;
+    }
+
+    public String getNxb() {
+        return nxb;
+    }
+
+    public String getImg() {
+        return img;
+    }
+
+    public Boolean getAvailability() {
+        return availability;
+    }
     public void setIdBook(String idBook) {
         this.idBook = idBook;
     }
@@ -64,8 +102,8 @@ public class Book {
         this.bigCategory = bigCategory;
     }
 
-    public void setQuality(Integer quantity) {
-        this.quantity = quantity;
+    public void setQuality(Integer quatity) {
+        this.quatity = quatity;
     }
 
 
