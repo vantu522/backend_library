@@ -2,6 +2,7 @@ package com.backend.management.service;
 
 import com.backend.management.exception.ResourceNotFoundException;
 import com.backend.management.model.Member;
+import com.backend.management.repository.BookRepo;
 import com.backend.management.repository.MemberRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,8 @@ import java.util.stream.Collectors;
 public class MemberService {
     @Autowired
     private MemberRepo memberRepo;
+
+    private BookRepo bookRepo ;
 
     //lay tat ca cac member
     public List<Member> getAllMembers(){

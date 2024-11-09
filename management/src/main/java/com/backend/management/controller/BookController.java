@@ -62,7 +62,7 @@ public class BookController {
         return bookService.searchBooks(name,author); // Gọi phương thức trong BookService
     }
 
-    @GetMapping("/categories")
+    @GetMapping("/categories/big-categories")
     public ResponseEntity<List<String>> getBigCategories() {
         List<String> bigCategories = bookCategoryService.getAllBigCategories()
                 .stream()
@@ -73,7 +73,7 @@ public class BookController {
         return ResponseEntity.ok(bigCategories);
     }
 
-    @GetMapping("/categories/{bigCategoryName}")
+    @GetMapping("/categories/{bigCategoryName}/subcategories")
     public ResponseEntity<List<String>> getSmallCategories(@PathVariable String bigCategoryName) {
         try {
             List<String> smallCategories = bookCategoryService.getSmallCategories(bigCategoryName);
@@ -86,9 +86,9 @@ public class BookController {
 
 
 
-    @GetMapping("/categories/{bigCategoryName}/{subCategoryName}/books")
-    public ResponseEntity<List<Book>> getBooksBySubCategory(@PathVariable String subCategoryName, @PathVariable String bigCategoryName){
-        List<Book> books = bookService.getBooksBySubCategory(subCategoryName, bigCategoryName);
+    @GetMapping("/categories/{subCategoryName}/books")
+    public ResponseEntity<List<Book>> getBooksBySubCategory(@PathVariable String subCategoryName){
+        List<Book> books = bookService.getBooksBySubCategory(subCategoryName);
         return ResponseEntity.ok(books);
     }
 
