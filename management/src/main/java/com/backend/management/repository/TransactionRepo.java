@@ -1,7 +1,5 @@
-//package com.backend.management.repository;
-//
-//import org.springframework.data.mongodb.repository.MongoRepository;
-//
-//public interface TransactionRepo extends MongoRepository {
-//
-//}
+package com.backend.management.repository;
+
+public interface TransactionRepo {
+
+}
