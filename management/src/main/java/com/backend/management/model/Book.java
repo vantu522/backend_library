@@ -16,7 +16,7 @@ public class Book {
     private List<String> author;
     private Integer publicationYear;
     private List<BookCategory> bigCategory;
-    private Integer quatity;
+    private Integer quantity;
     private Boolean availability;
     private String img;
     private String nxb;
@@ -27,14 +27,14 @@ public class Book {
     public Book() {
     }
 
-    public Book(String idBook, String name, String description, List<String> author, Integer publicationYear, List<BookCategory> bigCategory , Integer quatity, Boolean availability, String img,String nxb) {
+    public Book(String idBook, String name, String description, List<String> author, Integer publicationYear, List<BookCategory> bigCategory , Integer quantity, Boolean availability, String img,String nxb) {
         this.idBook = idBook;
         this.name = name;
         this.description = description;
         this.author = new ArrayList<>(author != null ? author : new ArrayList<>());
         this.publicationYear = publicationYear;
         this.bigCategory = new ArrayList<>(bigCategory != null ? bigCategory : new ArrayList<>());
-        this.quatity = quatity;
+        this.quantity = quantity;
         this.availability = availability;
         this.img=img;
         this.nxb=nxb;
@@ -63,8 +63,8 @@ public class Book {
         return bigCategory;
     }
 
-    public Integer getQuality() {
-        return quatity;
+    public Integer getQuantity() {
+        return quantity;
     }
 
     public String getNxb() {
@@ -102,8 +102,8 @@ public class Book {
         this.bigCategory = bigCategory;
     }
 
-    public void setQuality(Integer quatity) {
-        this.quatity = quatity;
+    public void setQuantity(Integer quatity) {
+        this.quantity = quatity;
     }
 
 

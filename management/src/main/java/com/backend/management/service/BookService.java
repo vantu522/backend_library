@@ -74,8 +74,8 @@ public class BookService {
         if (updatedBook.getBigCategory() != null){
             existingBook.setCategory(updatedBook.getBigCategory());
         }
-        if(updatedBook.getQuatity() != null){
-            existingBook.setQuality(updatedBook.getQuatity());
+        if(updatedBook.getQuantity() != null){
+            existingBook.setQuantity(updatedBook.getQuantity());
         }
         if (updatedBook.getAvailability() != null){
             existingBook.setAvailability(updatedBook.getAvailability());
@@ -95,12 +95,14 @@ public class BookService {
         bookRepo.deleteById(idBook);
     }
 
-    public List<Book> getBooksBySubCategory(String subCategoryName){
-        String slug = toSlug(subCategoryName);
+
+    public List<Book> getBooksBySubCategory(String subCategoryName, String bigCategoryName){
+        String subSlug = toSlug(subCategoryName);
+        String bigSlug = toSlug(bigCategoryName);
         return bookRepo.findAll().stream()
                 .filter(book -> book.getBigCategory().stream()
                         .anyMatch(bigCategory -> bigCategory.getSmallCategory().stream()
-                                .anyMatch(smallCategoty -> toSlug(smallCategoty).equals(slug))))
+                                .anyMatch(smallCategoty -> toSlug(smallCategoty).equals(subSlug))))
                 .collect(Collectors.toList());
     }
 

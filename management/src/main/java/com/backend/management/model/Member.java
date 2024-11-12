@@ -11,13 +11,13 @@ import java.util.List;
 public class Member extends Person {
     @Id
     private String memberId;
-    private List<Transaction> transactions;
+    private List<String> transactions;
     private int booksBorrowed;
 
-    public Member(String name, String email, String phoneNumber, String address, String memberId, List<Transaction> transactions, int booksBorrowed) {
+    public Member(String name, String email, String phoneNumber, String address, String memberId, List<String> transactions, int booksBorrowed) {
         super(name, email, phoneNumber, address);
         this.memberId = memberId;
-        this.transactions = transactions;
+        this.transactions=transactions;
         this.booksBorrowed = booksBorrowed;
     }
 
@@ -29,13 +29,13 @@ public class Member extends Person {
         this.memberId = memberId;
     }
 
-    public List<Transaction> getTransactions() {
-        return transactions;
-    }
-
-    public void setTransactions(List<Transaction> transactions) {
-        this.transactions = transactions;
-    }
+//    public List<Transaction> getTransactions() {
+//        return transactions;
+//    }
+//
+//    public void setTransactions(List<Transaction> transactions) {
+//        this.transactions = transactions;
+//    }
 
     public int getBooksBorrowed() {
         return booksBorrowed;
@@ -43,5 +43,13 @@ public class Member extends Person {
 
     public void setBooksBorrowed(int booksBorrowed) {
         this.booksBorrowed = booksBorrowed;
+    }
+
+    public List<String> getTransactions() {
+        return transactions;
+    }
+
+    public void setTransactions(List<String> transactions) {
+        this.transactions = transactions;
     }
 }
