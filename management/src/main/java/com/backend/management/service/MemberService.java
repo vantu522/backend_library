@@ -20,11 +20,7 @@ public class MemberService {
 
     //lay tat ca cac member
     public List<Member> getAllMembers(){
-        List<Member> members = memberRepo.findAll();
-        if(members.isEmpty()){
-            throw new ResourceNotFoundException("No members found");
-        }
-        return members;
+        return memberRepo.findAll();
     }
 
 
@@ -78,9 +74,9 @@ public class MemberService {
         if(updatedMember.getEmail() != null){
             existingMember.setEmail(updatedMember.getEmail());
         }
-        if(updatedMember.getTransactions() != null){
-            existingMember.setTransactions(updatedMember.getTransactions());
-        }
+//        if(updatedMember.getTransactions() != null){
+//            existingMember.setTransactions(updatedMember.getTransactions());
+//        }
         if(updatedMember.getBooksBorrowed() != 0){
             existingMember.setBooksBorrowed(updatedMember.getBooksBorrowed());
         }

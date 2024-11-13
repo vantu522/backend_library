@@ -13,9 +13,9 @@ public class WebConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**") // Cho phép tất cả các endpoint
-                        .allowedOrigins("*") // Cho phép tất cả các nguồn gốc
-                        .allowedMethods("*"); // Cho phép tất cả các phương thức HTTP
+                registry.addMapping("/**")
+                        .allowedOrigins("*")
+                        .allowedMethods("*");
             }
         };
     }
