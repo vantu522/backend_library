@@ -3,7 +3,7 @@ package com.backend.management.service;
 import com.backend.management.exception.ResourceNotFoundException;
 import com.backend.management.model.Book;
 import com.backend.management.model.Member;
-import com.backend.management.model.Transaction;
+//import com.backend.management.model.Transaction;
 import com.backend.management.model.TransactionHistory;
 import com.backend.management.repository.BookRepo;
 import com.backend.management.repository.MemberRepo;
@@ -87,7 +87,7 @@ public class TransactionService {
         Optional<Member> memberOpt = memberRepo.findById(memberId);
         Optional<Book> bookOpt = bookRepo.findById(bookId);
 
-        if (memberOpt.isEmpty() || bookOpt.isEmpty()) {
+        if (memberOpt.isEmpty() && bookOpt.isEmpty()) {
             throw new ResourceNotFoundException("Không tìm thấy thành viên hoặc sách");
         }
 
