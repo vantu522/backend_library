@@ -22,8 +22,8 @@ public class BookService {
     }
 
     //lay sach theo id
-    public Optional<Book> getBookById(String idBook) {
-        return bookRepo.findById(idBook);
+    public Optional<Book> getBookByBookId(String bookId) {
+        return bookRepo.findByBookId(bookId);
     }
 
     // lay sach theo ten hoac tac gia
@@ -53,11 +53,11 @@ public class BookService {
     }
 
     // lay sach theo id va cap nhat sach
-   public Book updateBook(String idBook, Book updatedBook){
-        Book existingBook = bookRepo.findByIdBook(idBook)
-                .orElseThrow(() -> new ResourceNotFoundException("book not found with id"+ idBook));
-        if(updatedBook.getIdBook() != null){
-            existingBook.setIdBook(updatedBook.getIdBook());
+   public Book updateBook(String BookId, Book updatedBook){
+        Book existingBook = bookRepo.findByBookId(BookId)
+                .orElseThrow(() -> new ResourceNotFoundException("book not found with id"+ BookId));
+        if(updatedBook.getbookId() != null){
+            existingBook.setbookId(updatedBook.getbookId());
         }
         if(updatedBook.getName() != null){
             existingBook.setName(updatedBook.getName());
@@ -74,8 +74,8 @@ public class BookService {
         if (updatedBook.getBigCategory() != null){
             existingBook.setCategory(updatedBook.getBigCategory());
         }
-        if(updatedBook.getQuatity() != null){
-            existingBook.setQuality(updatedBook.getQuatity());
+        if(updatedBook.getQuantity() != null){
+            existingBook.setQuantity(updatedBook.getQuantity());
         }
         if (updatedBook.getAvailability() != null){
             existingBook.setAvailability(updatedBook.getAvailability());
@@ -91,8 +91,8 @@ public class BookService {
 
 
     // xoa sach theo id
-    public void deleteBook(String idBook) {
-        bookRepo.deleteById(idBook);
+    public void deleteBook(String BookID) {
+        bookRepo.deleteById(BookID);
     }
 
     public List<Book> getBooksBySubCategory(String subCategoryName){
@@ -119,8 +119,8 @@ public class BookService {
     }
 
     //kiem tra sach co san hay hoc
-    public boolean isBookAvailable(String idBook){
-        Optional<Book> book = bookRepo.findByIdBook(idBook);
+    public boolean isBookAvailable(String BookId){
+        Optional<Book> book = bookRepo.findByBookId(BookId);
         return book.map(Book::getAvailability).orElse(false);
     }
 

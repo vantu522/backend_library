@@ -40,7 +40,7 @@ public class TransactionService {
         Book book = bookOpt.get();
         Member member = memberOpt.get();
 
-        if (book.getQuality() == 0) {
+        if (book.getQuantity() == 0) {
             return "Sách hiện không có sẵn";
         }
 
@@ -52,10 +52,10 @@ public class TransactionService {
         LocalDate dueDate = borrowDate.plus(14, ChronoUnit.DAYS);
 
         // Cập nhật số lượng sách và số lượng sách đã mượn của thành viên
-        book.setQuality(book.getQuality() - 1);
+        book.setQuantity(book.getQuantity() - 1);
         member.setBooksBorrowed(member.getBooksBorrowed() + 1);
 
-        if (book.getQuality() == 0) {
+        if (book.getQuantity() == 0) {
             book.setAvailability(false);
         }
 
@@ -65,7 +65,7 @@ public class TransactionService {
         TransactionHistory history = new TransactionHistory();
         history.setMemberId(memberId);
         history.setMemberName(member.getName());  // Lưu tên người mượn
-        history.setBookId(bookId);
+        history.setBookID(bookId);
         history.setTransactionType("mượn");
         history.setTransactionDate(borrowDate);
         history.setDueDate(dueDate);
@@ -84,8 +84,8 @@ public class TransactionService {
 
     // Phương thức trả sách
     public String returnBook(String memberId, String bookId) {
-        Optional<Member> memberOpt = memberRepo.findById(memberId);
-        Optional<Book> bookOpt = bookRepo.findById(bookId);
+        Optional<Member> memberOpt = memberRepo.findByMemberId(memberId);
+        Optional<Book> bookOpt = bookRepo.findByBookId(bookId);
 
         if (memberOpt.isEmpty() || bookOpt.isEmpty()) {
             throw new ResourceNotFoundException("Không tìm thấy thành viên hoặc sách");
@@ -102,8 +102,8 @@ public class TransactionService {
         }
 
         // Tăng số lượng sách lên và cập nhật trạng thái availability
-        book.setQuality(book.getQuality() + 1);
-        if (book.getQuality() > 0) {
+        book.setQuantity(book.getQuantity() + 1);
+        if (book.getQuantity() > 0) {
             book.setAvailability(true);
         }
 
@@ -111,7 +111,7 @@ public class TransactionService {
         TransactionHistory history = new TransactionHistory();
         history.setMemberId(memberId);
         history.setMemberName(member.getName());
-        history.setBookId(bookId);
+        history.setBookID(bookId);
         history.setTransactionType("trả");
         history.setTransactionDate(LocalDate.now());  // Ngày hiện tại
         history.setDueDate(null);  // Không có ngày hạn khi trả sách
@@ -151,9 +151,8 @@ public class TransactionService {
             TransactionHistory history = new TransactionHistory();
             history.setMemberId(memberId);
             history.setMemberName(member.getName());
-            history.setBookId(bookId);
+            history.setBookID(bookId);
             history.setTransactionType("gia hạn");  // Thay đổi thành "gia hạn"
-            history.setTransactionDate(LocalDate.now());  // Ngày gia hạn hiện tại
             history.setDueDate(newDueDate);  // Hạn mới
             history.setDescription("Gia hạn sách: " + book.getName() + ", Hạn mới: " + newDueDate);
 

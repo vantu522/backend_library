@@ -29,9 +29,9 @@ public class BookController {
     }
 
     //lay sach theo id
-    @GetMapping("/{idBook}")
-    public Optional<Book> getBookById(@PathVariable String idBook) {
-        return bookService.getBookById(idBook);
+    @GetMapping("/{bookId}")
+    public Optional<Book> getBookById(@PathVariable String bookId) {
+        return bookService.getBookByBookId(bookId);
     }
 
     //them sach
@@ -41,17 +41,17 @@ public class BookController {
     }
 
     //cap nhat sach theo id
-    @PutMapping("/update/{idBook}")
-    public ResponseEntity<Book> updateBook(@PathVariable String idBook, @RequestBody Book updatedBook) {
-        Book book = bookService.updateBook(idBook,updatedBook);
+    @PutMapping("/update/{bookId}")
+    public ResponseEntity<Book> updateBook(@PathVariable String bookId, @RequestBody Book updatedBook) {
+        Book book = bookService.updateBook(bookId,updatedBook);
         return ResponseEntity.ok(book);
 
     }
 
     // xoa sach theo id
-    @DeleteMapping("/delete/{idBook}")
-    public void deleteBook(@PathVariable String idBook) {
-        bookService.deleteBook(idBook);
+    @DeleteMapping("/delete/{bookId}")
+    public void deleteBook(@PathVariable String bookId) {
+        bookService.deleteBook(bookId);
     }
 
 
@@ -92,9 +92,9 @@ public class BookController {
         return ResponseEntity.ok(books);
     }
 
-    @GetMapping("/{idBook}/availability")
-    public boolean checkAvaibility(@PathVariable String idBook){
-        return bookService.isBookAvailable(idBook);
+    @GetMapping("/{bookId}/availability")
+    public boolean checkAvaibility(@PathVariable String bookId){
+        return bookService.isBookAvailable(bookId);
     }
 
 
