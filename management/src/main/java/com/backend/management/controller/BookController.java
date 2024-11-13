@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -99,6 +100,18 @@ public class BookController {
     public boolean checkAvaibility(@PathVariable String bookId){
         return bookService.isBookAvailable(bookId);
     }
+
+    //tong so luong sach dang co
+    @GetMapping("/total")
+    public int getTotalBooksInStock(){
+        return bookService.getTotalBooksInStock();
+    }
+
+    @GetMapping("/category-distribution")
+    public Map<String, Long> getCategoryDistribution() {
+        return bookService.getCategoryDistribution();
+    }
+
 
 
 

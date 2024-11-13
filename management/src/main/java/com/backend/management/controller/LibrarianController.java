@@ -21,7 +21,7 @@ public class LibrarianController {
     private LibrarianService librarianService;
 
 
-
+    // dang nhap
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
@@ -32,12 +32,14 @@ public class LibrarianController {
         }
     }
 
+    // them thong tin librarians
     @PostMapping("/register")
     public ResponseEntity<Librarian> registerLibrarian( @RequestBody Librarian librarian) {
         Librarian savedLibrarian = librarianService.addLibrarian(librarian);
         return ResponseEntity.ok(savedLibrarian);
     }
 
+    // gui mail
     @PostMapping("/send-otp")
     public ResponseEntity<?> sendOtp(@RequestBody LoginRequest request) {
         librarianService.sendPasswordResetOtp(request.getUsername());
