@@ -22,8 +22,8 @@ public class BookService {
     }
 
     //lay sach theo id
-    public Optional<Book> getBookById(String idBook) {
-        return bookRepo.findById(idBook);
+    public Optional<Book> getBookByBookId(String bookId) {
+        return bookRepo.findByBookId(bookId);
     }
 
     // lay sach theo ten hoac tac gia
@@ -53,11 +53,11 @@ public class BookService {
     }
 
     // lay sach theo id va cap nhat sach
-   public Book updateBook(String idBook, Book updatedBook){
-        Book existingBook = bookRepo.findByIdBook(idBook)
-                .orElseThrow(() -> new ResourceNotFoundException("book not found with id"+ idBook));
-        if(updatedBook.getIdBook() != null){
-            existingBook.setIdBook(updatedBook.getIdBook());
+   public Book updateBook(String bookId, Book updatedBook){
+        Book existingBook = bookRepo.findByBookId(bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("book not found with id"+ bookId));
+        if(updatedBook.getBookId() != null){
+            existingBook.setBookId(updatedBook.getBookId());
         }
         if(updatedBook.getName() != null){
             existingBook.setName(updatedBook.getName());
@@ -91,20 +91,26 @@ public class BookService {
 
 
     // xoa sach theo id
-    public void deleteBook(String idBook) {
-        bookRepo.deleteById(idBook);
+    public void deleteBook(String bookId) {
+        bookRepo.deleteById(bookId);
     }
 
 
-    public List<Book> getBooksBySubCategory(String subCategoryName, String bigCategoryName){
+    public List<Book> getBooksBySubCategory(String subCategoryName, String bigCategoryName) {
         String subSlug = toSlug(subCategoryName);
         String bigSlug = toSlug(bigCategoryName);
+
         return bookRepo.findAll().stream()
-                .filter(book -> book.getBigCategory().stream()
-                        .anyMatch(bigCategory -> bigCategory.getSmallCategory().stream()
-                                .anyMatch(smallCategoty -> toSlug(smallCategoty).equals(subSlug))))
+                .filter(book -> book.getBigCategory() != null &&  // Kiểm tra `null` cho `getBigCategory`
+                        book.getBigCategory().stream()
+                                .anyMatch(bigCategory -> bigCategory.getName() != null &&  // Kiểm tra `null` cho `getName`
+                                        toSlug(bigCategory.getName()).equals(bigSlug) &&
+                                        bigCategory.getSmallCategory() != null &&  // Kiểm tra `null` cho `getSmallCategory`
+                                        bigCategory.getSmallCategory().stream()
+                                                .anyMatch(smallCategory -> toSlug(smallCategory).equals(subSlug))))
                 .collect(Collectors.toList());
     }
+
 
 
     private String toSlug(String input) {
@@ -121,8 +127,8 @@ public class BookService {
     }
 
     //kiem tra sach co san hay hoc
-    public boolean isBookAvailable(String idBook){
-        Optional<Book> book = bookRepo.findByIdBook(idBook);
+    public boolean isBookAvailable(String bookId){
+        Optional<Book> book = bookRepo.findByBookId(bookId);
         return book.map(Book::getAvailability).orElse(false);
     }
 

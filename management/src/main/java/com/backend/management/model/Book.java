@@ -10,7 +10,7 @@ import java.util.ArrayList;
 @Document(collection = "books")
 public class Book {
     @Id
-    private String idBook;
+    private String bookId;
     private String name;
     private String description;
     private List<String> author;
@@ -27,8 +27,8 @@ public class Book {
     public Book() {
     }
 
-    public Book(String idBook, String name, String description, List<String> author, Integer publicationYear, List<BookCategory> bigCategory , Integer quantity, Boolean availability, String img,String nxb) {
-        this.idBook = idBook;
+    public Book(String bookId, String name, String description, List<String> author, Integer publicationYear, List<BookCategory> bigCategory , Integer quantity, Boolean availability, String img,String nxb) {
+        this.bookId = bookId;
         this.name = name;
         this.description = description;
         this.author = new ArrayList<>(author != null ? author : new ArrayList<>());
@@ -39,8 +39,8 @@ public class Book {
         this.img=img;
         this.nxb=nxb;
     }
-    public String getIdBook() {
-        return idBook;
+    public String getBookId() {
+        return bookId;
     }
 
     public String getName() {
@@ -59,7 +59,7 @@ public class Book {
         return publicationYear;
     }
 
-    public List<BookCategory> getCategory() {
+    public List<BookCategory> getBigCategory() {
         return bigCategory;
     }
 
@@ -78,8 +78,8 @@ public class Book {
     public Boolean getAvailability() {
         return availability;
     }
-    public void setIdBook(String idBook) {
-        this.idBook = idBook;
+    public void setBookId(String bookId) {
+        this.bookId = bookId;
     }
 
     public void setName(String name) {

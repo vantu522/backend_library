@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.text.Normalizer;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class BookCategoryService {
@@ -17,22 +18,24 @@ public class BookCategoryService {
 
 
     public List<BookCategory> getAllBigCategories() {
-        // Lấy tất cả sách và phân loại thể loại lớn duy nhất
         List<Book> books = bookRepo.findAll();
 
         return books.stream()
-                .flatMap(book -> book.getBigCategory().stream())
+                .flatMap(book -> book.getBigCategory() != null
+                        ? book.getBigCategory().stream()
+                        : Stream.empty())  // Trả về stream rỗng nếu `bigCategory` là null
                 .distinct()
                 .collect(Collectors.toList());
     }
 
+
     public List<String> getSmallCategories(String bigCategorySlug) {
         List<Book> books = bookRepo.findAll();
 
-
-
         return books.stream()
-                .flatMap(book -> book.getBigCategory().stream())
+                .flatMap(book -> book.getBigCategory() != null
+                        ? book.getBigCategory().stream()
+                        : Stream.empty())  // Trả về stream rỗng nếu `bigCategory` là null
                 .filter(bigCategory -> toSlug(bigCategory.getName()).equals(bigCategorySlug))
                 .flatMap(bigCategory -> bigCategory.getSmallCategory().stream())
                 .distinct()
