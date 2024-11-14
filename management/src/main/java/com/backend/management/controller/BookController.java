@@ -7,6 +7,7 @@ import com.backend.management.service.BookCategoryService;
 import com.backend.management.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +38,11 @@ public class BookController {
     }
 
 
+
+
+
+
+
     //lay sach theo id
     @GetMapping("/{bookId}")
     public Optional<Book> getBookByBookId(@PathVariable String bookId) {
@@ -62,6 +68,8 @@ public class BookController {
     public void deleteBook(@PathVariable String bookId) {
         bookService.deleteBook(bookId);
     }
+
+
     // lay ca the loai lon
     @GetMapping("/categories")
     public ResponseEntity<List<String>> getBigCategories() {
@@ -86,8 +94,6 @@ public class BookController {
         }
     }
 
-
-
     @GetMapping("/categories/{bigCategoryName}/{subCategoryName}/books")
     public ResponseEntity<List<Book>> getBooksBySubCategory(@PathVariable String subCategoryName,
                                                             @PathVariable String bigCategoryName){
@@ -109,6 +115,13 @@ public class BookController {
     @GetMapping("/category-distribution")
     public Map<String, Long> getCategoryDistribution() {
         return bookService.getCategoryDistribution();
+    }
+
+    @GetMapping("/search")
+    public List<Book> searchBooks(@RequestParam(required = false) String title,
+                                  @RequestParam(required = false) String author)
+    {
+        return bookService.searchBooks(title,author); // Gọi phương thức trong BookService
     }
 
 

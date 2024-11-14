@@ -5,11 +5,15 @@ import com.backend.management.exception.InvalidOtpException;
 import com.backend.management.exception.ResourceNotFoundException;
 import com.backend.management.model.Librarian;
 import com.backend.management.repository.LibrarianRepo;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +30,9 @@ public class LibrarianService {
     @Autowired
     private JavaMailSender mailSender;
 
+    @Autowired
+    private TemplateEngine templateEngine;
+
     // Lưu trữ OTP
     private Map<String, OtpData> otpStorage = new HashMap<>();
 
@@ -40,8 +47,7 @@ public class LibrarianService {
         }
     }
 
-    // Giữ nguyên các method cũ
-    public Librarian getLibrarianByUsername(String username){
+    public Librarian getLibrarianByUsername(String username) {
         return librarianRepo.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException(username));
     }
@@ -55,30 +61,36 @@ public class LibrarianService {
         }
     }
 
-    public Librarian addLibrarian(Librarian librarian){
+    public Librarian addLibrarian(Librarian librarian) {
         String encodedPassword = passwordEncoder.encode(librarian.getPassword());
         librarian.setPassword(encodedPassword);
         return librarianRepo.save(librarian);
     }
 
-
-
-    // Thêm các method mới
-
     // 1. Gửi mã OTP qua email
-    public void sendPasswordResetOtp(String username) {
+    public void sendPasswordResetOtp(String username) throws MessagingException {
         Librarian librarian = getLibrarianByUsername(username);
         String otp = generateOtp();
-
         // Lưu OTP vào storage
         otpStorage.put(username, new OtpData(otp));
 
-        // Tạo và gửi email
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(librarian.getEmail());
-        message.setSubject("Tra sach de muon qua han roi ");
-        message.setText("Mã OTP của bạn là: " + otp + "\nMã này sẽ hết hạn sau 5 phút.");
-        mailSender.send(message);
+        Context context = new Context();
+        context.setVariable("username", username);
+        context.setVariable("otp", otp);
+
+        String emailContent = templateEngine.process("email/reset", context);
+
+        // tao va gui email
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+        helper.setTo(librarian.getEmail());
+        helper.setSubject("dat lai mat khau");
+        helper.setText(emailContent, true);
+
+        mailSender.send(mimeMessage);
+
+
+
     }
 
     // 2. Xác thực OTP và đổi mật khẩu
@@ -119,4 +131,5 @@ public class LibrarianService {
         return otpData.otp.equals(inputOtp) &&
                 (currentTime - otpData.timestamp) <= 5 * 60 * 1000; // 5 phút
     }
+
 }

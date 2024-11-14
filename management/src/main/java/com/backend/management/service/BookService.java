@@ -41,31 +41,6 @@ public class BookService {
         return bookRepo.findByBookId(bookId);
     }
 
-    public Page<Book> searchBooks(String name, String author, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        String nameSlug = name != null ? toSlug(name) : null;
-        String authorSlug = author != null ? toSlug(author) : null;
-
-        if (nameSlug != null && authorSlug != null) {
-            return bookRepo.findByNameRegexAndAuthorRegex(
-                    Pattern.compile(nameSlug, Pattern.CASE_INSENSITIVE),
-                    Pattern.compile(authorSlug, Pattern.CASE_INSENSITIVE),
-                    pageable
-            );
-        } else if (authorSlug != null) {
-            return bookRepo.findByAuthorRegex(
-                    Pattern.compile(authorSlug, Pattern.CASE_INSENSITIVE),
-                    pageable
-            );
-        } else if (nameSlug != null) {
-            return bookRepo.findByNameRegex(
-                    Pattern.compile(nameSlug, Pattern.CASE_INSENSITIVE),
-                    pageable
-            );
-        }
-        return getAllBooks(page, size);
-    }
-
     //them sach
     public Book addBook(Book book) {
         return bookRepo.save(book);
@@ -78,8 +53,8 @@ public class BookService {
         if (updatedBook.getBookId() != null) {
             existingBook.setBookId(updatedBook.getBookId());
         }
-        if (updatedBook.getName() != null) {
-            existingBook.setName(updatedBook.getName());
+        if (updatedBook.getTitle() != null) {
+            existingBook.setTitle(updatedBook.getTitle());
         }
         if (updatedBook.getAuthor() != null) {
             existingBook.setAuthor(updatedBook.getAuthor());
@@ -113,7 +88,7 @@ public class BookService {
         bookRepo.deleteById(bookId);
     }
 
-
+    // lay ra cac sach thuoc the loai con
     public List<Book> getBooksBySubCategory(String subCategoryName, String bigCategoryName) {
         String subSlug = toSlug(subCategoryName);
         String bigSlug = toSlug(bigCategoryName);
@@ -129,7 +104,7 @@ public class BookService {
                 .collect(Collectors.toList());
     }
 
-
+    // cau hinh slug
     private String toSlug(String input) {
         if (input == null) return "";
 
@@ -170,5 +145,31 @@ public class BookService {
 
         return categoryCount;
     }
+
+    // lay sach theo ten hoac tac gia
+    public List<Book> searchBooks(String title, String author) {
+        String titleSlug = title != null ? toSlug(title) : null;
+        String authorSlug = author != null ? toSlug(author) : null;
+        if (titleSlug != null && authorSlug != null) {
+            return bookRepo.findAll().stream()
+                    .filter(book -> toSlug(book.getTitle()).equals(titleSlug)
+                            && book.getAuthor().stream().anyMatch(a -> toSlug(a).equals(authorSlug)))
+                    .collect(Collectors.toList());
+        } else if (author != null) {
+            return bookRepo.findAll().stream()
+                    .filter(book -> book.getAuthor().stream().anyMatch(a -> toSlug(a).equals(authorSlug)))
+                    .collect(Collectors.toList());
+        } else if (title != null) {
+            return bookRepo.findAll().stream()
+                    .filter(book -> toSlug(book.getTitle()).equals(titleSlug))
+                    .collect((Collectors.toList()));
+        }
+        return bookRepo.findAll();
+    }
+
+
+
+
+
 }
 

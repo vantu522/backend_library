@@ -1,11 +1,11 @@
 package com.backend.management.repository;
 
+import com.backend.management.model.Book;
 import com.backend.management.model.CategoryCount;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import com.backend.management.model.Book;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -37,7 +37,6 @@ public interface BookRepo extends MongoRepository<Book, String> {
             "{ 'author': { $elemMatch: { $regex: ?1, $options: 'i' }}} " +
             "]}")
     Page<Book> findByNameRegexAndAuthorRegex(Pattern namePattern, Pattern authorPattern, Pageable pageable);
-
 
 
     @Aggregation(pipeline = {
