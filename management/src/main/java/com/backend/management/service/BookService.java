@@ -2,25 +2,38 @@ package com.backend.management.service;
 
 import com.backend.management.exception.ResourceNotFoundException;
 import com.backend.management.model.Book;
+import com.backend.management.model.CategoryCount;
 import com.backend.management.repository.BookRepo;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.stereotype.Service;
+
 
 import java.text.Normalizer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
 public class BookService {
     @Autowired
     private BookRepo bookRepo;
+    
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     // lay tat ca cac sach
-    public List<Book> getAllBooks() {
-        return bookRepo.findAll();
+    public Page<Book> getAllBooks(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return bookRepo.findAll(pageable);
     }
 
     //lay sach theo id
@@ -28,25 +41,29 @@ public class BookService {
         return bookRepo.findByBookId(bookId);
     }
 
-    // lay sach theo ten hoac tac gia
-    public List<Book> searchBooks(String name, String author) {
+    public Page<Book> searchBooks(String name, String author, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
         String nameSlug = name != null ? toSlug(name) : null;
         String authorSlug = author != null ? toSlug(author) : null;
+
         if (nameSlug != null && authorSlug != null) {
-            return bookRepo.findAll().stream()
-                    .filter(book -> toSlug(book.getName()).equals(nameSlug)
-                            && book.getAuthor().stream().anyMatch(a -> toSlug(a).equals(authorSlug)))
-                    .collect(Collectors.toList());
-        } else if (author != null) {
-            return bookRepo.findAll().stream()
-                    .filter(book -> book.getAuthor().stream().anyMatch(a -> toSlug(a).equals(authorSlug)))
-                    .collect(Collectors.toList());
-        } else if (name != null) {
-            return bookRepo.findAll().stream()
-                    .filter(book -> toSlug(book.getName()).equals(nameSlug))
-                    .collect((Collectors.toList()));
+            return bookRepo.findByNameRegexAndAuthorRegex(
+                    Pattern.compile(nameSlug, Pattern.CASE_INSENSITIVE),
+                    Pattern.compile(authorSlug, Pattern.CASE_INSENSITIVE),
+                    pageable
+            );
+        } else if (authorSlug != null) {
+            return bookRepo.findByAuthorRegex(
+                    Pattern.compile(authorSlug, Pattern.CASE_INSENSITIVE),
+                    pageable
+            );
+        } else if (nameSlug != null) {
+            return bookRepo.findByNameRegex(
+                    Pattern.compile(nameSlug, Pattern.CASE_INSENSITIVE),
+                    pageable
+            );
         }
-        return getAllBooks();
+        return getAllBooks(page, size);
     }
 
     //them sach
@@ -132,46 +149,26 @@ public class BookService {
         return book.map(Book::getAvailability).orElse(false);
     }
 
-
-    //dem so luong sach trong kho
+    // dem tong so sach dang co
     public int getTotalBooksInStock() {
-        try {
-            List<Map<String, Object>> result = bookRepo.getTotalBooksInStock();
-
-            if (result.isEmpty() || result.get(0).get("totalQuantity") == null) {
-                return 0;  // Trả về 0 nếu không có kết quả hoặc không có giá trị tổng số sách
-            }
-
-            // Trả về tổng số sách
-            return ((Number) result.get(0).get("totalQuantity")).intValue();
-        } catch (Exception e) {
-            // Log lỗi hoặc xử lý lỗi nếu có
-            e.printStackTrace();
-
-            // Có thể trả về một giá trị mặc định (ví dụ: 0) hoặc ném lại exception tùy vào yêu cầu
-            throw new RuntimeException("An error occurred while calculating total books in stock.", e);
-        }
+        List<Book> books = bookRepo.findAllQuantities();
+        return books.stream()
+                .mapToInt(Book::getQuantity)
+                .sum();
     }
 
-
-
+    // dem so sach cua moi the loai
     public Map<String, Long> getCategoryDistribution() {
-        List<Book> books = bookRepo.findAll();
+        List<CategoryCount> results = bookRepo.getCategoryDistribution();
         Map<String, Long> categoryCount = new HashMap<>();
 
-        books.forEach(book -> {
-            if (book.getBigCategory() != null) {
-                book.getBigCategory().forEach(category -> {
-                    String categoryName = category.getName();
-                    categoryCount.put(categoryName, categoryCount.getOrDefault(categoryName, 0L) + 1);
-                });
+        for (CategoryCount result : results) {
+            if (result.getId() != null) {
+                categoryCount.put(result.getId(), result.getCount());
             }
-        });
+        }
 
         return categoryCount;
-
     }
-
-
 }
 

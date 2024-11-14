@@ -1,24 +1,50 @@
 package com.backend.management.repository;
 
+import com.backend.management.model.CategoryCount;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import com.backend.management.model.Book;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Repository
 public interface BookRepo extends MongoRepository<Book, String> {
 
     Optional<Book> findByBookId(String bookId);
 
-    @Aggregation(pipeline = {
-            "{ '$group': { '_id': null, 'totalQuantity': { '$sum': '$quantity' } } }"
-    })
-    List<Map<String, Object>> getTotalBooksInStock();
+    // dem tat ca sos sasch
+    @Query(value = "{}", fields = "{quantity: 1}")
+    List<Book> findAllQuantities();
 
+    // Tìm theo tên
+    @Query("{ 'name': { $regex: ?0, $options: 'i' }}")
+    Page<Book> findByNameRegex(Pattern pattern, Pageable pageable);
+
+    // Tìm theo tác giả
+    @Query("{ 'author': { $elemMatch: { $regex: ?0, $options: 'i' }}}")
+    Page<Book> findByAuthorRegex(Pattern pattern, Pageable pageable);
+
+    // Tìm theo cả tên và tác giả
+    @Query("{ $and: [ " +
+            "{ 'name': { $regex: ?0, $options: 'i' }}, " +
+            "{ 'author': { $elemMatch: { $regex: ?1, $options: 'i' }}} " +
+            "]}")
+    Page<Book> findByNameRegexAndAuthorRegex(Pattern namePattern, Pattern authorPattern, Pageable pageable);
+
+
+
+    @Aggregation(pipeline = {
+            "{ $unwind: '$bigCategory' }",
+            "{ $group: { _id: '$bigCategory.name', count: { $sum: 1 } } }"
+    })
+    List<CategoryCount> getCategoryDistribution();
 
 
 

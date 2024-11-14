@@ -2,15 +2,16 @@ package com.backend.management.controller;
 
 import com.backend.management.model.Book;
 import com.backend.management.model.BookCategory;
+import com.backend.management.model.PaginatedResponse;
 import com.backend.management.service.BookCategoryService;
 import com.backend.management.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -24,10 +25,17 @@ public class BookController {
 
     // lay tat ca cac sach
     @GetMapping
-    public ResponseEntity<List<Book>> getAllBooks(){
-        List<Book> books= bookService.getAllBooks();
-        return ResponseEntity.ok(books);
+    public ResponseEntity<PaginatedResponse<Book>> geAllBooks(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            Page<Book> pageBooks = bookService.getAllBooks(page, size);
+            return ResponseEntity.ok(PaginatedResponse.of(pageBooks));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
+
 
     //lay sach theo id
     @GetMapping("/{bookId}")
@@ -54,15 +62,6 @@ public class BookController {
     public void deleteBook(@PathVariable String bookId) {
         bookService.deleteBook(bookId);
     }
-
-
-    @GetMapping("/search")
-    public List<Book> searchBooks(@RequestParam(required = false) String name,
-                                  @RequestParam(required = false) String author)
-    {
-        return bookService.searchBooks(name,author); // Gọi phương thức trong BookService
-    }
-
     // lay ca the loai lon
     @GetMapping("/categories")
     public ResponseEntity<List<String>> getBigCategories() {
