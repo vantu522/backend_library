@@ -73,26 +73,16 @@ public class BookController {
     // lay ca the loai lon
     @GetMapping("/categories")
     public ResponseEntity<List<String>> getBigCategories() {
-        List<String> bigCategories = bookCategoryService.getAllBigCategories()
-                .stream()
-                .map(BookCategory::getName) // Giả định BookCategory có phương thức getName()
-                .distinct()
-                .collect(Collectors.toList());
-
+        List<String> bigCategories = bookCategoryService.getAllBigCategories();
         return ResponseEntity.ok(bigCategories);
     }
 
 
-    @GetMapping("/categories/{bigCategoryName}")
-    public ResponseEntity<List<String>> getSmallCategories(@PathVariable String bigCategoryName) {
-        try {
-            List<String> smallCategories = bookCategoryService.getSmallCategories(bigCategoryName);
-            return ResponseEntity.ok(smallCategories);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
-        }
+    @GetMapping("/categories/{bigCategorySlug}")
+    public  List<String> getSmallCategories(@PathVariable String bigCategorySlug){
+        return bookCategoryService.getSmallCategories(bigCategorySlug);
     }
+
 
     @GetMapping("/categories/{bigCategoryName}/{subCategoryName}/books")
     public ResponseEntity<List<Book>> getBooksBySubCategory(@PathVariable String subCategoryName,
@@ -100,6 +90,8 @@ public class BookController {
         List<Book> books = bookService.getBooksBySubCategory(subCategoryName, bigCategoryName);
         return ResponseEntity.ok(books);
     }
+
+
 
     @GetMapping("/{bookId}/availability")
     public boolean checkAvaibility(@PathVariable String bookId){

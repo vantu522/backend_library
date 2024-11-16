@@ -1,6 +1,7 @@
 package com.backend.management.repository;
 
 import com.backend.management.model.Book;
+import com.backend.management.model.BookCategory;
 import com.backend.management.model.CategoryCount;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,12 +39,31 @@ public interface BookRepo extends MongoRepository<Book, String> {
             "]}")
     Page<Book> findByNameRegexAndAuthorRegex(Pattern namePattern, Pattern authorPattern, Pageable pageable);
 
-
+    // tinh tong sach moi the loai lonw
     @Aggregation(pipeline = {
             "{ $unwind: '$bigCategory' }",
             "{ $group: { _id: '$bigCategory.name', count: { $sum: 1 } } }"
     })
     List<CategoryCount> getCategoryDistribution();
+
+
+
+
+    //truy van lay cac the loai lon
+    @Aggregation(pipeline = {
+            "{ $unwind: '$bigCategory' }",
+            "{ $group: { _id: '$bigCategory.name' } }",
+            "{ $project: { _id: 0, name: '$_id' } }"
+    })
+    List<String> findDistinctBigCategories();
+
+
+
+
+    // Sửa lại phương thức query small categories
+    @Query(value = "{ 'bigCategory': { $elemMatch: { 'name': ?0 } } }",
+            fields = "{ 'bigCategory.$': 1 }")
+    List<Book> findByBigCategoryName(String bigCategoryName);
 
 
 

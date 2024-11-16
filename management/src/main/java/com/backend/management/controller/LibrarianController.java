@@ -42,12 +42,12 @@ public class LibrarianController {
 
     // gui mail
     @PostMapping("/send-otp")
-    public ResponseEntity<?> sendPasswordResetOtp(@RequestParam String username) throws MessagingException {
+    public ResponseEntity<?> sendPasswordResetOtp(@RequestBody LoginRequest request) throws MessagingException {
         try{
-            librarianService.sendPasswordResetOtp(username);
-            return ResponseEntity.ok("OTP da gui");
+            librarianService.sendPasswordResetOtp(request.getUsername());
+            return ResponseEntity.ok("da gui otp thanh cong");
         } catch(Exception e){
-            return ResponseEntity.badRequest().body("khong the gui otp"+ e.getMessage());
+            return ResponseEntity.badRequest().body("khong the gui otp:"+ e.getMessage());
         }
     }
 
