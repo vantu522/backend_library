@@ -13,21 +13,21 @@ public class TransactionController {
     private TransactionService transactionService;
 
     @PostMapping("/borrow")
-    public ResponseEntity<String> borrowBook(@RequestParam String memberId, @RequestParam String bookId) {
+    public ResponseEntity<String> borrowBook(@RequestBody String memberId, @RequestBody String bookId) {
         String result = transactionService.borrowBook(memberId, bookId);
         return ResponseEntity.ok(result);
     }
 
     // API trả sách
     @PostMapping("/return")
-    public ResponseEntity<String> returnBook(@RequestParam String memberId, @RequestParam String bookId) {
+    public ResponseEntity<String> returnBook(@RequestBody String memberId, @RequestBody String bookId) {
         String result = transactionService.returnBook(memberId, bookId);
         return ResponseEntity.ok(result);
     }
 
     // API gia hạn sách
     @PostMapping("/renew")
-    public ResponseEntity<String> renewBook(@RequestParam String memberId, @RequestParam String bookId) {
+    public ResponseEntity<String> renewBook(@RequestBody String memberId, @RequestBody String bookId) {
         String result = transactionService.renewBook(memberId, bookId);
         return ResponseEntity.ok(result);
     }
