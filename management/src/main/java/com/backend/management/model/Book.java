@@ -11,7 +11,7 @@ import java.util.ArrayList;
 public class Book {
     @Id
     private String bookId;
-    private String name;
+    private String title;
     private String description;
     private List<String> author;
     private Integer publicationYear;
@@ -27,9 +27,9 @@ public class Book {
     public Book() {
     }
 
-    public Book(String bookId, String name, String description, List<String> author, Integer publicationYear, List<BookCategory> bigCategory , Integer quantity, Boolean availability, String img,String nxb) {
+    public Book(String bookId, String title, String description, List<String> author, Integer publicationYear, List<BookCategory> bigCategory , Integer quantity, Boolean availability, String img,String nxb) {
         this.bookId = bookId;
-        this.name = name;
+        this.title = title;
         this.description = description;
         this.author = new ArrayList<>(author != null ? author : new ArrayList<>());
         this.publicationYear = publicationYear;
@@ -39,12 +39,12 @@ public class Book {
         this.img=img;
         this.nxb=nxb;
     }
-    public String getbookId() {
+    public String getBookId() {
         return bookId;
     }
 
-    public String getName() {
-        return name;
+    public String getTitle() {
+        return title;
     }
 
     public String getDescription() {
@@ -59,7 +59,7 @@ public class Book {
         return publicationYear;
     }
 
-    public List<BookCategory> getCategory() {
+    public List<BookCategory> getBigCategory() {
         return bigCategory;
     }
 
@@ -78,12 +78,12 @@ public class Book {
     public Boolean getAvailability() {
         return availability;
     }
-    public void setbookId(String bookId) {
-        this.bookId= bookId;
+    public void setBookId(String bookId) {
+        this.bookId = bookId;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public void setDescription(String description) {

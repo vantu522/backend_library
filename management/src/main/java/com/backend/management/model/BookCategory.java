@@ -3,23 +3,16 @@ package com.backend.management.model;
 import java.util.List;
 import java.util.ArrayList;
 
-public class BookCategory {
+public class  BookCategory {
     private String name;
     private List<String> smallCategory;
 
-//    private String slug;
 
     public BookCategory() {
         this.smallCategory = new ArrayList<>();
     }
 
-//    public String getSlug() {
-//        return slug;
-//    }
-//
-//    public void setSlug(String slug) {
-//        this.slug = slug;
-//    }
+
 
     public String getName() {
         return name;

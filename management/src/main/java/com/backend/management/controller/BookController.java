@@ -2,18 +2,21 @@ package com.backend.management.controller;
 
 import com.backend.management.model.Book;
 import com.backend.management.model.BookCategory;
+import com.backend.management.model.PaginatedResponse;
 import com.backend.management.service.BookCategoryService;
 import com.backend.management.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/books")
+@RequestMapping("/api/v1")
 public class BookController {
     @Autowired
     private BookService bookService;
@@ -23,14 +26,26 @@ public class BookController {
 
     // lay tat ca cac sach
     @GetMapping
-    public ResponseEntity<List<Book>> getAllBooks(){
-        List<Book> books= bookService.getAllBooks();
-        return ResponseEntity.ok(books);
+    public ResponseEntity<PaginatedResponse<Book>> geAllBooks(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            Page<Book> pageBooks = bookService.getAllBooks(page, size);
+            return ResponseEntity.ok(PaginatedResponse.of(pageBooks));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
+
+
+
+
+
+
 
     //lay sach theo id
     @GetMapping("/{bookId}")
-    public Optional<Book> getBookById(@PathVariable String bookId) {
+    public Optional<Book> getBookByBookId(@PathVariable String bookId) {
         return bookService.getBookByBookId(bookId);
     }
 
@@ -55,49 +70,79 @@ public class BookController {
     }
 
 
-    @GetMapping("/search")
-    public List<Book> searchBooks(@RequestParam(required = false) String name,
-                                  @RequestParam(required = false) String author)
-    {
-        return bookService.searchBooks(name,author); // Gọi phương thức trong BookService
-    }
-
+    // lay ca the loai lon
     @GetMapping("/categories")
     public ResponseEntity<List<String>> getBigCategories() {
-        List<String> bigCategories = bookCategoryService.getAllBigCategories()
-                .stream()
-                .map(BookCategory::getName) // Giả định BookCategory có phương thức getName()
-                .distinct()
-                .collect(Collectors.toList());
-
+        List<String> bigCategories = bookCategoryService.getAllBigCategories();
         return ResponseEntity.ok(bigCategories);
     }
 
-    @GetMapping("/categories/{bigCategoryName}")
-    public ResponseEntity<List<String>> getSmallCategories(@PathVariable String bigCategoryName) {
+
+    @GetMapping("/categories/{bigCategorySlug}")
+    public  List<String> getSmallCategories(@PathVariable String bigCategorySlug){
+        return bookCategoryService.getSmallCategories(bigCategorySlug);
+    }
+
+
+
+
+    @GetMapping("/categories/{bigCategorySlug}/{subCategorySlug}/books")
+    public ResponseEntity<?> getBooksByCategory(
+            @PathVariable String bigCategorySlug,
+            @PathVariable String subCategorySlug,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
         try {
-            List<String> smallCategories = bookCategoryService.getSmallCategories(bigCategoryName);
-            return ResponseEntity.ok(smallCategories);
+            if (page < 0 || size <= 0) {
+                return ResponseEntity.badRequest()
+                    .body("Page và size phải là số dương");
+            }
+
+            PaginatedResponse<Book> response = bookService.getBooksBySubCategory(
+                    bigCategorySlug,
+                    subCategorySlug,
+                    page,
+                    size
+            );
+
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body(e.getMessage());
         }
     }
 
 
 
-    @GetMapping("/categories/{bigCategoryName}/{subCategoryName}/books")
-    public ResponseEntity<List<Book>> getBooksBySubCategory(@PathVariable String subCategoryName,
-                                                            @PathVariable String bigCategoryName){
-        List<Book> books = bookService.getBooksBySubCategory(subCategoryName, bigCategoryName);
-        return ResponseEntity.ok(books);
-    }
 
     @GetMapping("/{bookId}/availability")
     public boolean checkAvaibility(@PathVariable String bookId){
         return bookService.isBookAvailable(bookId);
     }
 
+    //tong so luong sach dang co
+    @GetMapping("/total")
+    public int getTotalBooksInStock(){
+        return bookService.getTotalBooksInStock();
+    }
+
+    @GetMapping("/category-distribution")
+    public Map<String, Long> getCategoryDistribution() {
+        return bookService.getCategoryDistribution();
+    }
+
+    @GetMapping("/search")
+    public List<Book> searchBooks(@RequestParam(required = false) String title,
+                                  @RequestParam(required = false) String author)
+    {
+        return bookService.searchBooks(title,author); // Gọi phương thức trong BookService
+    }
+
+
 
 
 }
+

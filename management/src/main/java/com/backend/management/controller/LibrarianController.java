@@ -6,6 +6,7 @@ import com.backend.management.exception.ResourceNotFoundException;
 import com.backend.management.model.Librarian;
 import com.backend.management.model.LoginRequest;
 import com.backend.management.service.LibrarianService;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.aggregation.VariableOperators;
 import org.springframework.http.HttpStatus;
@@ -21,7 +22,7 @@ public class LibrarianController {
     private LibrarianService librarianService;
 
 
-
+    // dang nhap
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
@@ -32,17 +33,24 @@ public class LibrarianController {
         }
     }
 
+    // them thong tin librarians
     @PostMapping("/register")
     public ResponseEntity<Librarian> registerLibrarian( @RequestBody Librarian librarian) {
         Librarian savedLibrarian = librarianService.addLibrarian(librarian);
         return ResponseEntity.ok(savedLibrarian);
     }
 
+    // gui mail
     @PostMapping("/send-otp")
-    public ResponseEntity<?> sendOtp(@RequestBody LoginRequest request) {
-        librarianService.sendPasswordResetOtp(request.getUsername());
-        return ResponseEntity.ok().body("OTP đã được gửi đến email của bạn");
+    public ResponseEntity<?> sendPasswordResetOtp(@RequestBody LoginRequest request) throws MessagingException {
+        try{
+            librarianService.sendPasswordResetOtp(request.getUsername());
+            return ResponseEntity.ok("da gui otp thanh cong");
+        } catch(Exception e){
+            return ResponseEntity.badRequest().body("khong the gui otp:"+ e.getMessage());
+        }
     }
+
 
     // Reset mật khẩu bằng OTP
     @PostMapping("/reset")

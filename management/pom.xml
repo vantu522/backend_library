@@ -58,6 +58,12 @@
 			<optional>true</optional>
 		</dependency>
 
+		<!--template -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+
 		<!-- Dependency for Spring Boot Test -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

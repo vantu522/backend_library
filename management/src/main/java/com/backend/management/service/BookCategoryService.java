@@ -9,32 +9,38 @@ import org.springframework.stereotype.Service;
 import java.text.Normalizer;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class BookCategoryService {
     @Autowired
     private BookRepo bookRepo;
 
-
-    public List<BookCategory> getAllBigCategories() {
-        // Lấy tất cả sách và phân loại thể loại lớn duy nhất
-        List<Book> books = bookRepo.findAll();
-
-        return books.stream()
-                .flatMap(book -> book.getBigCategory().stream())
-                .distinct()
-                .collect(Collectors.toList());
+    // lay ra cac the loai lon
+    public List<String> getAllBigCategories() {
+        return bookRepo.findDistinctBigCategories();
     }
 
+
+
+    // Lấy các thể loại nhỏ theo slug của thể loại lớn
     public List<String> getSmallCategories(String bigCategorySlug) {
-        List<Book> books = bookRepo.findAll();
+        // Tìm tất cả các thể loại lớn
+        List<String> allCategories = getAllBigCategories();
+        // Tìm thể loại lớn tương ứng với slug
+        String matchedCategory = allCategories.stream()
+                .filter(category -> toSlug(category).equals(bigCategorySlug))
+                .findFirst()
+                .orElse(null);
+        if (matchedCategory == null) {
+            return List.of();
+        }
 
-
-
-        return books.stream()
+        // Lấy các sách theo thể loại lớn và thu thập các thể loại nhỏ
+        return bookRepo.findByBigCategoryName(matchedCategory).stream()
                 .flatMap(book -> book.getBigCategory().stream())
-                .filter(bigCategory -> toSlug(bigCategory.getName()).equals(bigCategorySlug))
-                .flatMap(bigCategory -> bigCategory.getSmallCategory().stream())
+                .filter(category -> category.getName().equals(matchedCategory))
+                .flatMap(category -> category.getSmallCategory().stream())
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
@@ -53,12 +59,6 @@ public class BookCategoryService {
                 .replaceAll("\\s+", "-");
     }
 
-    // Thêm method để lấy một book category theo slug
-    public BookCategory getBigCategoryBySlug(String slug) {
-        return bookRepo.findAll().stream()
-                .flatMap(book -> book.getBigCategory().stream())
-                .filter(category -> toSlug(category.getName()).equals(slug))
-                .findFirst()
-                .orElse(null);
-    }
+
+
 }

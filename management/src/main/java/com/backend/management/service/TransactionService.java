@@ -60,16 +60,16 @@ public class TransactionService {
         }
 
         // Thêm một chuỗi mô tả giao dịch vào danh sách các giao dịch của thành viên
-        String transactionDescription = "Mượn sách: " + book.getName() + ", Hạn trả: " + dueDate;
+        String transactionDescription = "Mượn sách: " + book.getTitle() + ", Hạn trả: " + dueDate;
         member.getTransactions().add(transactionDescription);  // Thêm vào List<String>
         TransactionHistory history = new TransactionHistory();
         history.setMemberId(memberId);
         history.setMemberName(member.getName());  // Lưu tên người mượn
-        history.setBookID(bookId);
-        history.setTransactionType("mượn");
+        history.setBookId(bookId);
+        history.setTransactionType("Mượn");
         history.setTransactionDate(borrowDate);
         history.setDueDate(dueDate);
-        history.setDescription("Mượn sách: " + book.getName() + ", Hạn trả: " + dueDate);
+        history.setDescription("Mượn sách: " + book.getTitle() + ", Hạn trả: " + dueDate);
 
         // Lưu giao dịch vào cơ sở dữ liệu
         transactionHistoryRepo.save(history);
@@ -84,8 +84,8 @@ public class TransactionService {
 
     // Phương thức trả sách
     public String returnBook(String memberId, String bookId) {
-        Optional<Member> memberOpt = memberRepo.findByMemberId(memberId);
-        Optional<Book> bookOpt = bookRepo.findByBookId(bookId);
+        Optional<Member> memberOpt = memberRepo.findById(memberId);
+        Optional<Book> bookOpt = bookRepo.findById(bookId);
 
         if (memberOpt.isEmpty() && bookOpt.isEmpty()) {
             throw new ResourceNotFoundException("Không tìm thấy thành viên hoặc sách");
@@ -111,11 +111,11 @@ public class TransactionService {
         TransactionHistory history = new TransactionHistory();
         history.setMemberId(memberId);
         history.setMemberName(member.getName());
-        history.setBookID(bookId);
-        history.setTransactionType("trả");
+        history.setBookId(bookId);
+        history.setTransactionType("Trả");
         history.setTransactionDate(LocalDate.now());  // Ngày hiện tại
         history.setDueDate(null);  // Không có ngày hạn khi trả sách
-        history.setDescription("Trả sách: " + book.getName());
+        history.setDescription("Trả sách: " + book.getTitle());
 
         // Lưu giao dịch vào cơ sở dữ liệu
         transactionHistoryRepo.save(history);  // Lưu TransactionHistory vào DB
@@ -151,10 +151,11 @@ public class TransactionService {
             TransactionHistory history = new TransactionHistory();
             history.setMemberId(memberId);
             history.setMemberName(member.getName());
-            history.setBookID(bookId);
+            history.setBookId(bookId);
             history.setTransactionType("gia hạn");  // Thay đổi thành "gia hạn"
+            history.setTransactionDate(LocalDate.now());  // Ngày gia hạn hiện tại
             history.setDueDate(newDueDate);  // Hạn mới
-            history.setDescription("Gia hạn sách: " + book.getName() + ", Hạn mới: " + newDueDate);
+            history.setDescription("Gia hạn sách: " + book.getTitle() + ", Hạn mới: " + newDueDate);
 
             // Lưu giao dịch vào cơ sở dữ liệu
             transactionHistoryRepo.save(history);
