@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/books")
+@RequestMapping("/api/v1")
 public class BookController {
     @Autowired
     private BookService bookService;
@@ -84,12 +84,37 @@ public class BookController {
     }
 
 
-    @GetMapping("/categories/{bigCategoryName}/{subCategoryName}/books")
-    public ResponseEntity<List<Book>> getBooksBySubCategory(@PathVariable String subCategoryName,
-                                                            @PathVariable String bigCategoryName){
-        List<Book> books = bookService.getBooksBySubCategory(subCategoryName, bigCategoryName);
-        return ResponseEntity.ok(books);
+
+
+    @GetMapping("/categories/{bigCategorySlug}/{subCategorySlug}/books")
+    public ResponseEntity<?> getBooksByCategory(
+            @PathVariable String bigCategorySlug,
+            @PathVariable String subCategorySlug,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        try {
+            if (page < 0 || size <= 0) {
+                return ResponseEntity.badRequest()
+                    .body("Page và size phải là số dương");
+            }
+
+            PaginatedResponse<Book> response = bookService.getBooksBySubCategory(
+                    bigCategorySlug,
+                    subCategorySlug,
+                    page,
+                    size
+            );
+
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
     }
+
 
 
 
@@ -120,3 +145,4 @@ public class BookController {
 
 
 }
+

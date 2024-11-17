@@ -3,22 +3,22 @@ package com.backend.management.service;
 import com.backend.management.exception.ResourceNotFoundException;
 import com.backend.management.model.Book;
 import com.backend.management.model.CategoryCount;
+import com.backend.management.model.PaginatedResponse;
 import com.backend.management.repository.BookRepo;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.stereotype.Service;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.Normalizer;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class BookService {
     @Autowired
     private BookRepo bookRepo;
-    
+
     @Autowired
     private MongoTemplate mongoTemplate;
 
@@ -36,12 +36,12 @@ public class BookService {
         return bookRepo.findAll(pageable);
     }
 
-    //lay sach theo id
+    // lay sach theo id
     public Optional<Book> getBookByBookId(String bookId) {
         return bookRepo.findByBookId(bookId);
     }
 
-    //them sach
+    // them sach
     public Book addBook(Book book) {
         return bookRepo.save(book);
     }
@@ -82,31 +82,16 @@ public class BookService {
 
     }
 
-
     // xoa sach theo id
     public void deleteBook(String bookId) {
         bookRepo.deleteById(bookId);
     }
 
-    // lay ra cac sach thuoc the loai con
-    public List<Book> getBooksBySubCategory(String subCategoryName, String bigCategoryName) {
-        String subSlug = toSlug(subCategoryName);
-        String bigSlug = toSlug(bigCategoryName);
-
-        return bookRepo.findAll().stream()
-                .filter(book -> book.getBigCategory() != null &&  // Kiểm tra `null` cho `getBigCategory`
-                        book.getBigCategory().stream()
-                                .anyMatch(bigCategory -> bigCategory.getName() != null &&  // Kiểm tra `null` cho `getName`
-                                        toSlug(bigCategory.getName()).equals(bigSlug) &&
-                                        bigCategory.getSmallCategory() != null &&  // Kiểm tra `null` cho `getSmallCategory`
-                                        bigCategory.getSmallCategory().stream()
-                                                .anyMatch(smallCategory -> toSlug(smallCategory).equals(subSlug))))
-                .collect(Collectors.toList());
-    }
 
     // cau hinh slug
     private String toSlug(String input) {
-        if (input == null) return "";
+        if (input == null)
+            return "";
 
         return Normalizer.normalize(input, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "")
@@ -118,7 +103,7 @@ public class BookService {
                 .replaceAll("\\s+", "-");
     }
 
-    //kiem tra sach co san hay hoc
+    // kiem tra sach co san hay hoc
     public boolean isBookAvailable(String bookId) {
         Optional<Book> book = bookRepo.findByBookId(bookId);
         return book.map(Book::getAvailability).orElse(false);
@@ -167,9 +152,4 @@ public class BookService {
         return bookRepo.findAll();
     }
 
-
-
-
-
 }
-

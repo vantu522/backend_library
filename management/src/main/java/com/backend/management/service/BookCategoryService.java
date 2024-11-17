@@ -24,17 +24,14 @@ public class BookCategoryService {
 
 
     // Lấy các thể loại nhỏ theo slug của thể loại lớn
-
     public List<String> getSmallCategories(String bigCategorySlug) {
         // Tìm tất cả các thể loại lớn
         List<String> allCategories = getAllBigCategories();
-
         // Tìm thể loại lớn tương ứng với slug
         String matchedCategory = allCategories.stream()
                 .filter(category -> toSlug(category).equals(bigCategorySlug))
                 .findFirst()
                 .orElse(null);
-
         if (matchedCategory == null) {
             return List.of();
         }
@@ -48,9 +45,6 @@ public class BookCategoryService {
                 .sorted()
                 .collect(Collectors.toList());
     }
-
-
-
 
     private String toSlug(String input) {
         if (input == null) return "";
