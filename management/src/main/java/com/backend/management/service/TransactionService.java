@@ -66,6 +66,7 @@ public class TransactionService {
         history.setMemberId(memberId);
         history.setMemberName(member.getName());  // Lưu tên người mượn
         history.setBookId(bookId);
+        history.setTitle(book.getTitle());
         history.setTransactionType("Mượn");
         history.setTransactionDate(borrowDate);
         history.setDueDate(dueDate);
@@ -112,6 +113,7 @@ public class TransactionService {
         history.setMemberId(memberId);
         history.setMemberName(member.getName());
         history.setBookId(bookId);
+        history.setTitle(book.getTitle());
         history.setTransactionType("Trả");
         history.setTransactionDate(LocalDate.now());  // Ngày hiện tại
         history.setDueDate(null);  // Không có ngày hạn khi trả sách
@@ -152,6 +154,7 @@ public class TransactionService {
             history.setMemberId(memberId);
             history.setMemberName(member.getName());
             history.setBookId(bookId);
+            history.setTitle(book.getTitle());
             history.setTransactionType("gia hạn");  // Thay đổi thành "gia hạn"
             history.setTransactionDate(LocalDate.now());  // Ngày gia hạn hiện tại
             history.setDueDate(newDueDate);  // Hạn mới
