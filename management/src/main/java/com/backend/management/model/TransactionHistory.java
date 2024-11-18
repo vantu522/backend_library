@@ -3,7 +3,7 @@ package com.backend.management.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Document(collection = "transactionHistory")
 public class TransactionHistory {
@@ -15,8 +15,9 @@ public class TransactionHistory {
     private String bookId;
     private String title;
     private String transactionType;
-    private LocalDate transactionDate;
-    private LocalDate dueDate;  // Dùng cho mượn hoặc gia hạn nếu có
+    private LocalDateTime transactionDate;
+    private LocalDateTime dueDate;  // Dùng cho mượn hoặc gia hạn nếu có
+    private Boolean  status; // True là vẫn đang mượn, False là đã trả
     private String description;
 
     // Getters và Setters
@@ -69,21 +70,30 @@ public class TransactionHistory {
         this.transactionType = transactionType;
     }
 
-    public LocalDate getTransactionDate() {
+    public LocalDateTime getTransactionDate() {
         return transactionDate;
     }
 
-    public void setTransactionDate(LocalDate transactionDate) {
+    public void setTransactionDate(LocalDateTime transactionDate) {
         this.transactionDate = transactionDate;
     }
 
-    public LocalDate getDueDate() {
+    public LocalDateTime getDueDate() {
         return dueDate;
     }
 
-    public void setDueDate(LocalDate dueDate) {
+    public void setDueDate(LocalDateTime dueDate) {
         this.dueDate = dueDate;
     }
+
+    public boolean getStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
 
     public String getDescription() {
         return description;
