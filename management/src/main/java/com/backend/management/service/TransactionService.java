@@ -184,6 +184,14 @@ public class TransactionService {
             member = members.get(0);
         }
 
+        List<TransactionHistory> overdueTransactions = transactionHistoryRepo.findByMemberIdAndStatusAndDueDateBefore(
+                memberId, true, LocalDateTime.now());
+
+        if (!overdueTransactions.isEmpty()) {
+            return "Không thể mượn sách mới vì có sách đã quá hạn. Vui lòng trả hết sách đã quá hạn.";
+        }
+
+
         // Kiểm tra nếu bookId được cung cấp, lấy sách bằng bookId
         Optional<Book> bookOpt = Optional.empty();
         if (bookId != null && !bookId.isEmpty()) {
@@ -302,6 +310,15 @@ public class TransactionService {
         // Lấy giao dịch mượn đầu tiên (có thể có nhiều giao dịch nhưng ta chỉ lấy giao dịch đầu tiên)
         TransactionHistory borrowTransaction = borrowTransactions.get(0);
 
+        // Kiểm tra số lần gia hạn trước khi gia hạn
+        List<TransactionHistory> renewTransactions = transactionHistoryRepo.findByMemberIdAndBookIdAndTransactionTypeAndStatus(
+                member.getMemberId(), book.getBookId(), "Gia hạn", true);
+        // giới hạn số lần gia hanj sách
+        int maxRenewCount = 2;
+        if (renewTransactions.size() >= maxRenewCount) {
+            return "Sách này đã đạt giới hạn gia hạn tối đa.";
+        }
+
         // Kiểm tra ngày hết hạn sách, nếu còn nhỏ hơn 7 ngày thì mới cần gia hạn
         LocalDateTime dueDate = borrowTransaction.getDueDate();
         LocalDateTime now = LocalDateTime.now();
@@ -320,10 +337,10 @@ public class TransactionService {
             renewTransaction.setMemberName(member.getName());
             renewTransaction.setBookId(book.getBookId());
             renewTransaction.setTitle(book.getTitle());
-            renewTransaction.setTransactionType("Gia hạn");  // Thay đổi thành "Gia hạn"
+            renewTransaction.setTransactionType("Gia hạn");
             renewTransaction.setTransactionDate(now);  // Ngày gia hạn hiện tại
             renewTransaction.setDueDate(newDueDate);  // Hạn mới
-            renewTransaction.setStatus(true);  // Đánh dấu giao dịch "đang mượn" (status = true)
+            renewTransaction.setStatus(true);
             renewTransaction.setDescription("Gia hạn sách: " + book.getTitle() + ", Hạn mới: " + newDueDate);
 
             // Lưu giao dịch gia hạn vào cơ sở dữ liệu
@@ -336,6 +353,7 @@ public class TransactionService {
             return "Bạn chưa cần gia hạn sách. Thời gian mượn còn lại là " + daysLeft + " ngày.";
         }
     }
+
 
 }
 
