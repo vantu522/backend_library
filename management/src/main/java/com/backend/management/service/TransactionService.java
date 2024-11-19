@@ -1,6 +1,5 @@
 package com.backend.management.service;
 
-import com.backend.management.exception.ResourceNotFoundException;
 import com.backend.management.model.Book;
 import com.backend.management.model.Member;
 //import com.backend.management.model.Transaction;
@@ -15,8 +14,7 @@ import org.springframework.stereotype.Service;
 import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Optional;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class TransactionService {
@@ -26,9 +24,9 @@ public class TransactionService {
     @Autowired
     private MemberRepo memberRepo;
     @Autowired
-    private  TransactionHistoryRepo transactionHistoryRepo;
+    private TransactionHistoryRepo transactionHistoryRepo;
 
-  //  private Transaction transaction;
+    //  private Transaction transaction;
     private Member member;
 
     private String toSlug(String input) {
@@ -51,7 +49,7 @@ public class TransactionService {
         String nameSlug = toSlug(name);
         String titleSlug = toSlug(title);
 
-       // Member member = null;
+        // Member member = null;
 
         // Nếu có memberId, tìm thành viên theo memberId
         if (memberId != null && !memberId.isEmpty()) {
@@ -354,7 +352,70 @@ public class TransactionService {
         }
     }
 
+    public List<Map<String, String>> getAllBorrowTransactions() {
+        // Lấy tất cả các giao dịch có loại "Mượn"
+        List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionType("Mượn");
 
+        // Chuyển đổi danh sách giao dịch thành danh sách kèm trạng thái
+        List<Map<String, String>> result = new ArrayList<>();
+        for (TransactionHistory transaction : transactions) {
+            Map<String, String> transactionDetails = new HashMap<>();
+            transactionDetails.put("memberId", transaction.getMemberId());
+            transactionDetails.put("memberName", transaction.getMemberName());
+            transactionDetails.put("bookId", transaction.getBookId());
+            transactionDetails.put("bookTitle", transaction.getTitle());
+            transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
+            transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
+            transactionDetails.put("description", transaction.getDescription());
+
+            result.add(transactionDetails);
+        }
+
+        return result;
+    }
+
+    public List<Map<String, String>> getAllReturnTransactions() {
+        // Lấy tất cả giao dịch "Trả"
+        List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionType("Trả");
+
+        // Chuyển đổi sang định dạng mong muốn
+        List<Map<String, String>> result = new ArrayList<>();
+        for (TransactionHistory transaction : transactions) {
+            Map<String, String> transactionDetails = new HashMap<>();
+            transactionDetails.put("memberId", transaction.getMemberId());
+            transactionDetails.put("memberName", transaction.getMemberName());
+            transactionDetails.put("bookId", transaction.getBookId());
+            transactionDetails.put("bookTitle", transaction.getTitle());
+            transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
+            transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
+            transactionDetails.put("description", transaction.getDescription());
+
+            result.add(transactionDetails);
+        }
+
+        return result;
+    }
+    public List<Map<String, String>> getAllRenewTransactions() {
+        // Lấy tất cả các giao dịch có loại "Gia hạn"
+        List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionType("Gia hạn");
+
+        // Chuyển đổi danh sách giao dịch thành danh sách kèm trạng thái
+        List<Map<String, String>> result = new ArrayList<>();
+        for (TransactionHistory transaction : transactions) {
+            Map<String, String> transactionDetails = new HashMap<>();
+            transactionDetails.put("memberId", transaction.getMemberId());
+            transactionDetails.put("memberName", transaction.getMemberName());
+            transactionDetails.put("bookId", transaction.getBookId());
+            transactionDetails.put("bookTitle", transaction.getTitle());
+            transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
+            transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
+            transactionDetails.put("description", transaction.getDescription());
+
+            result.add(transactionDetails);
+        }
+
+        return result;
+    }
 }
 
 

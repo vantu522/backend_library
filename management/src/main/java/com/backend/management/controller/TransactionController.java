@@ -1,11 +1,14 @@
 package com.backend.management.controller;
 
+import com.backend.management.model.TransactionHistory;
 import com.backend.management.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.pulsar.PulsarProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -14,6 +17,29 @@ public class TransactionController {
 
     @Autowired
     private TransactionService transactionService;
+
+    @GetMapping("/borrowed")
+
+    public ResponseEntity<List<Map<String, String>>> getBookBorowed() {
+        List<Map<String, String>> transactions = transactionService.getAllBorrowTransactions();
+        return ResponseEntity.ok(transactions);
+    }
+
+    @GetMapping("/returned")
+    public ResponseEntity<List<Map<String, String>>> getBookReturn() {
+        List<Map<String, String>> transactions = transactionService.getAllReturnTransactions();
+        return ResponseEntity.ok(transactions);
+    }
+
+    @GetMapping("/renewed")
+    public ResponseEntity<List<Map<String, String>>> getBookRenew() {
+        List<Map<String, String>> transactions = transactionService.getAllRenewTransactions();
+        return ResponseEntity.ok(transactions);
+    }
+
+
+
+
 
     @PostMapping("/borrow")
     public ResponseEntity<String> borrowBook(@RequestBody Map<String, String> requestBody) {
