@@ -38,6 +38,15 @@ public class BookController {
     }
 
 
+    @GetMapping("/categories/{bigCategoryName}/{subCategoryName}/book")
+    public ResponseEntity<List<Book>> getBooksBySubCategory(@PathVariable String subCategoryName,
+                                                            @PathVariable String bigCategoryName){
+        List<Book> books = bookService.getBooksBySubCategory(subCategoryName, bigCategoryName);
+        return ResponseEntity.ok(books);
+    }
+
+
+
 
 
 

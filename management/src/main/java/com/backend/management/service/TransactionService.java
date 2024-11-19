@@ -50,7 +50,6 @@ public class TransactionService {
         // Tạo slug cho name và title
         String nameSlug = toSlug(name);
         String titleSlug = toSlug(title);
-
        // Member member = null;
 
         // Nếu có memberId, tìm thành viên theo memberId

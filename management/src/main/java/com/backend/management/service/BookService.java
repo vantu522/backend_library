@@ -37,6 +37,8 @@ public class BookService {
         return bookRepo.findAll(pageable);
     }
 
+
+
     // lay sach theo id
     public Optional<Book> getBookByBookId(String bookId) {
         return bookRepo.findByBookId(bookId);
@@ -88,24 +90,6 @@ public class BookService {
         bookRepo.deleteById(bookId);
     }
 
-    //
-
-
-
-    // cau hinh slug
-    private String toSlug(String input) {
-        if (input == null)
-            return "";
-
-        return Normalizer.normalize(input, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "")
-                .toLowerCase()
-                .replaceAll("đ", "d")
-                .replaceAll("/", " ")
-                .replaceAll("[^a-z0-9\\s-]", "")
-                .trim()
-                .replaceAll("\\s+", "-");
-    }
 
     // kiem tra sach co san hay hoc
     public boolean isBookAvailable(String bookId) {
@@ -137,20 +121,20 @@ public class BookService {
 
     // lay sach theo ten hoac tac gia
     public List<Book> searchBooks(String title, String author) {
-        String titleSlug = title != null ? toSlug(title) : null;
-        String authorSlug = author != null ? toSlug(author) : null;
+        String titleSlug = title != null ? SlugUtil.toSlug(title) : null;
+        String authorSlug = author != null ? SlugUtil.toSlug(author) : null;
         if (titleSlug != null && authorSlug != null) {
             return bookRepo.findAll().stream()
-                    .filter(book -> toSlug(book.getTitle()).equals(titleSlug)
-                            && book.getAuthor().stream().anyMatch(a -> toSlug(a).equals(authorSlug)))
+                    .filter(book -> SlugUtil.toSlug(book.getTitle()).equals(titleSlug)
+                            && book.getAuthor().stream().anyMatch(a -> SlugUtil.toSlug(a).equals(authorSlug)))
                     .collect(Collectors.toList());
         } else if (author != null) {
             return bookRepo.findAll().stream()
-                    .filter(book -> book.getAuthor().stream().anyMatch(a -> toSlug(a).equals(authorSlug)))
+                    .filter(book -> book.getAuthor().stream().anyMatch(a -> SlugUtil.toSlug(a).equals(authorSlug)))
                     .collect(Collectors.toList());
         } else if (title != null) {
             return bookRepo.findAll().stream()
-                    .filter(book -> toSlug(book.getTitle()).equals(titleSlug))
+                    .filter(book -> SlugUtil.toSlug(book.getTitle()).equals(titleSlug))
                     .collect((Collectors.toList()));
         }
         return bookRepo.findAll();
@@ -158,19 +142,15 @@ public class BookService {
 
 
 
-    public List<Book> findBySmallCategory(String slug) {
-        // Chuyển slug thành tên thể loại nhỏ
-        String smallCategoryName = SlugUtil.toSlug(slug);
-
-        // Tìm sách theo thể loại nhỏ
-        return bookRepo.findBySmallCategoryName(smallCategoryName);
+    public List<Book> getBooksBySubCategory(String subCategoryName, String bigCategoryName){
+        String subSlug = SlugUtil.toSlug(subCategoryName);
+        String bigSlug = SlugUtil.toSlug(bigCategoryName);
+        return bookRepo.findAll().stream()
+                .filter(book -> book.getBigCategory().stream()
+                        .anyMatch(bigCategory -> bigCategory.getSmallCategory().stream()
+                                .anyMatch(smallCategoty -> SlugUtil.toSlug(smallCategoty).equals(subSlug))))
+                .collect(Collectors.toList());
     }
-
-
-
-
-
-
 
 
 }

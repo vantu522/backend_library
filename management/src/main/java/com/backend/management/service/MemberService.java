@@ -78,7 +78,7 @@ public class MemberService {
 //        if(updatedMember.getTransactions() != null){
 //            existingMember.setTransactions(updatedMember.getTransactions());
 //        }
-        if(updatedMember.getBooksBorrowed() != 0){
+        if(updatedMember.getBooksBorrowed() != -1){
             existingMember.setBooksBorrowed(updatedMember.getBooksBorrowed());
         }
 

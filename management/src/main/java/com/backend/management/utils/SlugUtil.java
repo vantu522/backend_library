@@ -22,3 +22,5 @@ public class SlugUtil {
                 .replaceAll("\\s+", "-"); // Thay khoảng trắng bằng dấu "-"
     }
 }
+
+
