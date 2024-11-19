@@ -4,7 +4,9 @@ import com.backend.management.model.TransactionHistory;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface TransactionHistoryRepo extends MongoRepository<TransactionHistory, String> {
 
@@ -16,4 +18,13 @@ public interface TransactionHistoryRepo extends MongoRepository<TransactionHisto
 
     // Tìm tất cả các giao dịch của một cuốn sách cụ thể
     List<TransactionHistory> findByBookId(String bookId);
+
+
+    List<TransactionHistory> findByMemberIdAndBookIdAndTransactionTypeAndStatus(
+            String memberId, String bookId, String transactionType, boolean status);
+
+    List<TransactionHistory> findByMemberIdAndStatusAndDueDateBefore(String memberId, boolean status, LocalDateTime dueDate);
+
+
+
 }

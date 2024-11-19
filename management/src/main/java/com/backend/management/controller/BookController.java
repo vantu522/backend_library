@@ -7,12 +7,10 @@ import com.backend.management.service.BookCategoryService;
 import com.backend.management.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,6 +36,10 @@ public class BookController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+
+
+
 
 
 
@@ -82,6 +84,11 @@ public class BookController {
     }
 
 
+
+
+
+
+
     @GetMapping("/{bookId}/availability")
     public boolean checkAvaibility(@PathVariable String bookId){
         return bookService.isBookAvailable(bookId);
@@ -103,15 +110,6 @@ public class BookController {
                                   @RequestParam(required = false) String author)
     {
         return bookService.searchBooks(title,author); // Gọi phương thức trong BookService
-    }
-
-    @GetMapping("/smallcategories/{slug}")
-    public ResponseEntity<List<Book>> getBooksBySmallCategory(@PathVariable String slug) {
-        List<Book> books = bookService.findBySmallCategory(slug);
-        if (books.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(books);
     }
 
 

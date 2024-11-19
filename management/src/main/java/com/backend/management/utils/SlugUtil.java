@@ -5,7 +5,6 @@ import java.text.Normalizer;
 public class SlugUtil {
 
     private SlugUtil() {
-        // Ngăn không cho tạo đối tượng
     }
 
     public static String toSlug(String input) {
