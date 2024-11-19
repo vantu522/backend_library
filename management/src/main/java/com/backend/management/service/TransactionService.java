@@ -217,6 +217,7 @@ public class TransactionService {
 
         // Nếu giao dịch mượn tồn tại, cập nhật số lượng sách và trạng thái
         book.setQuantity(book.getQuantity() + 1);
+        member.setBooksBorrowed(member.getBooksBorrowed()-1);
         if (book.getQuantity() > 0) {
             book.setAvailability(true);
         }
