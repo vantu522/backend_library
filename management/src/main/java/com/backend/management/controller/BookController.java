@@ -7,16 +7,18 @@ import com.backend.management.service.BookCategoryService;
 import com.backend.management.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/books")
 public class BookController {
     @Autowired
     private BookService bookService;
@@ -36,10 +38,6 @@ public class BookController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
-
-
-
 
 
 
@@ -84,40 +82,6 @@ public class BookController {
     }
 
 
-
-
-    @GetMapping("/categories/{bigCategorySlug}/{subCategorySlug}/books")
-    public ResponseEntity<?> getBooksByCategory(
-            @PathVariable String bigCategorySlug,
-            @PathVariable String subCategorySlug,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        try {
-            if (page < 0 || size <= 0) {
-                return ResponseEntity.badRequest()
-                    .body("Page và size phải là số dương");
-            }
-
-            PaginatedResponse<Book> response = bookService.getBooksBySubCategory(
-                    bigCategorySlug,
-                    subCategorySlug,
-                    page,
-                    size
-            );
-
-            return ResponseEntity.ok(response);
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(e.getMessage());
-        }
-    }
-
-
-
-
     @GetMapping("/{bookId}/availability")
     public boolean checkAvaibility(@PathVariable String bookId){
         return bookService.isBookAvailable(bookId);
@@ -139,6 +103,15 @@ public class BookController {
                                   @RequestParam(required = false) String author)
     {
         return bookService.searchBooks(title,author); // Gọi phương thức trong BookService
+    }
+
+    @GetMapping("/smallcategories/{slug}")
+    public ResponseEntity<List<Book>> getBooksBySmallCategory(@PathVariable String slug) {
+        List<Book> books = bookService.findBySmallCategory(slug);
+        if (books.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(books);
     }
 
 

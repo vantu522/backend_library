@@ -61,17 +61,10 @@ public interface BookRepo extends MongoRepository<Book, String> {
             fields = "{ 'bigCategory.$': 1 }")
     List<Book> findByBigCategoryName(String bigCategoryName);
 
-    // Thêm phương thức mới
-    @Query(value = "{ 'bigCategory': { " +
-           "$elemMatch: { " +
-           "'name': ?0, " +
-           "'smallCategory': { $in: [?1] }" +
-           "} } }")
-    Page<Book> findByBigCategoryAndSmallCategory(String bigCategory, 
-                                                String smallCategory, 
-                                                Pageable pageable);
 
 
+    @Query("{ 'bigCategory.smallCategory': ?0 }")
+    List<Book> findBySmallCategoryName(String smallCategoryName);
 
 
 

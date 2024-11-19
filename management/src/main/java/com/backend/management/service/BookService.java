@@ -5,6 +5,7 @@ import com.backend.management.model.Book;
 import com.backend.management.model.CategoryCount;
 import com.backend.management.model.PaginatedResponse;
 import com.backend.management.repository.BookRepo;
+import com.backend.management.utils.SlugUtil;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -87,6 +88,9 @@ public class BookService {
         bookRepo.deleteById(bookId);
     }
 
+    //
+
+
 
     // cau hinh slug
     private String toSlug(String input) {
@@ -151,5 +155,22 @@ public class BookService {
         }
         return bookRepo.findAll();
     }
+
+
+
+    public List<Book> findBySmallCategory(String slug) {
+        // Chuyển slug thành tên thể loại nhỏ
+        String smallCategoryName = SlugUtil.toSlug(slug);
+
+        // Tìm sách theo thể loại nhỏ
+        return bookRepo.findBySmallCategoryName(smallCategoryName);
+    }
+
+
+
+
+
+
+
 
 }

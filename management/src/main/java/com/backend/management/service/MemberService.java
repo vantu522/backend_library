@@ -4,6 +4,7 @@ import com.backend.management.exception.ResourceNotFoundException;
 import com.backend.management.model.Member;
 import com.backend.management.repository.BookRepo;
 import com.backend.management.repository.MemberRepo;
+import com.backend.management.utils.SlugUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,17 +27,17 @@ public class MemberService {
 
     // lay thanh vien theo ten hoac so dien thoai
     public List<Member> getMemberByNameAndPhoneNumber(String name,String phoneNumber){
-        String nameSlug = name != null ? toSlug(name) : null;
+        String nameSlug = name != null ? SlugUtil.toSlug(name) : null;
 
         if(nameSlug != null && phoneNumber != null ){
             return memberRepo.findAll().stream()
                     .filter(member ->
-                            (nameSlug != null && toSlug(member.getName()).equals(nameSlug)) ||
+                            (nameSlug != null && SlugUtil.toSlug(member.getName()).equals(nameSlug)) ||
                                     (phoneNumber != null && member.getPhoneNumber().equals(phoneNumber)))
                     .collect(Collectors.toList());
         } else if (nameSlug != null) {
             return memberRepo.findAll().stream()
-                    .filter(member->toSlug(member.getName()).equals(nameSlug))
+                    .filter(member->SlugUtil.toSlug(member.getName()).equals(nameSlug))
                     .collect(Collectors.toList());
 
         } else if(phoneNumber != null){
@@ -96,18 +97,5 @@ public class MemberService {
 
 
 
-    //cau hinh Slug
-    private String toSlug(String input) {
-        if (input == null) return "";
-
-        return Normalizer.normalize(input, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "")
-                .toLowerCase()
-                .replaceAll("đ", "d")
-                .replaceAll("/"," ")
-                .replaceAll("[^a-z0-9\\s-]", "")
-                .trim()
-                .replaceAll("\\s+", "-");
-    }
 
 }

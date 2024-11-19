@@ -3,6 +3,7 @@ package com.backend.management.service;
 import com.backend.management.model.Book;
 import com.backend.management.model.BookCategory;
 import com.backend.management.repository.BookRepo;
+import com.backend.management.utils.SlugUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +30,7 @@ public class BookCategoryService {
         List<String> allCategories = getAllBigCategories();
         // Tìm thể loại lớn tương ứng với slug
         String matchedCategory = allCategories.stream()
-                .filter(category -> toSlug(category).equals(bigCategorySlug))
+                .filter(category -> SlugUtil.toSlug(category).equals(bigCategorySlug))
                 .findFirst()
                 .orElse(null);
         if (matchedCategory == null) {
@@ -44,19 +45,6 @@ public class BookCategoryService {
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
-    }
-
-    private String toSlug(String input) {
-        if (input == null) return "";
-
-        return Normalizer.normalize(input, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "")
-                .toLowerCase()
-                .replaceAll("đ", "d")
-                .replaceAll("/","")
-                .replaceAll("[^a-z0-9\\s-]", "")
-                .trim()
-                .replaceAll("\\s+", "-");
     }
 
 
