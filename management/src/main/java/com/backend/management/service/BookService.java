@@ -123,28 +123,35 @@ public class BookService {
         return categoryCount;
     }
 
-    // lay sach theo ten hoac tac gia
     public List<Book> searchBooks(String title, String author) {
-        String titleSlug = title != null ? SlugUtil.toSlug(title) : null;
-        String authorSlug = author != null ? SlugUtil.toSlug(author) : null;
-        if (titleSlug != null && authorSlug != null) {
-            return bookRepo.findAll().stream()
-                    .filter(book -> SlugUtil.toSlug(book.getTitle()).equals(titleSlug)
-                            && book.getAuthor().stream().anyMatch(a -> SlugUtil.toSlug(a).equals(authorSlug)))
-                    .collect(Collectors.toList());
-        } else if (author != null) {
-            return bookRepo.findAll().stream()
-                    .filter(book -> book.getAuthor().stream().anyMatch(a -> SlugUtil.toSlug(a).equals(authorSlug)))
-                    .collect(Collectors.toList());
-        } else if (title != null) {
-            return bookRepo.findAll().stream()
-                    .filter(book -> SlugUtil.toSlug(book.getTitle()).equals(titleSlug))
-                    .collect((Collectors.toList()));
+        Criteria criteria = new Criteria();
+
+        if (title != null) {
+            criteria.and("title").regex(".*" + title + ".*", "i");
         }
-        return bookRepo.findAll();
+
+        if (author != null) {
+            criteria.and("author").regex(".*" + author + ".*", "i");
+        }
+
+        Query query = new Query(criteria);
+        return mongoTemplate.find(query, Book.class);
     }
 
 
+    public List<Book> suggestBooks(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Criteria criteria = new Criteria().orOperator(
+                Criteria.where("title").regex("^" + query, "i"),
+                Criteria.where("author").regex("^" + query, "i")
+        );
+
+        Query querys = new Query(criteria).limit(10);
+        return mongoTemplate.find(querys, Book.class);
+    }
 
     public List<Book> getBooksBySubCategory(String subCategoryName, String bigCategoryName){
         String subSlug = SlugUtil.toSlug(subCategoryName);

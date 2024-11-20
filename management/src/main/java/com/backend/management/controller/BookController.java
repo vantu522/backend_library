@@ -116,9 +116,15 @@ public class BookController {
     public List<Book> searchBooks(@RequestParam(required = false) String title,
                                   @RequestParam(required = false) String author)
     {
-        return bookService.searchBooks(title,author); // Gọi phương thức trong BookService
+        return bookService.searchBooks(title,author);
     }
 
+    @GetMapping("/suggest")
+    public ResponseEntity<List<Book>> suggestBooks(
+            @RequestParam String query
+    ) {
+        return ResponseEntity.ok(bookService.suggestBooks(query));
+    }
     // sua danh muc lon
     @PutMapping("/update-big-category")
     public ResponseEntity<String> updateBigCategoryName(
