@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Document(collection = "transactionHistory")
 public class TransactionHistory {
@@ -14,6 +15,7 @@ public class TransactionHistory {
     private String memberName;  // Tên người mượn
     private String bookId;
     private String title;
+    private List<String> author;
     private String transactionType;
     private LocalDateTime transactionDate;
     private LocalDateTime dueDate;  // Dùng cho mượn hoặc gia hạn nếu có
@@ -103,5 +105,11 @@ public class TransactionHistory {
         this.description = description;
     }
 
+    public List<String> getAuthor(List<String> author) {
+        return author;
+    }
+    public void setAuthor(List<String> author) {
+        this.author = author;
+    }
 
 }
