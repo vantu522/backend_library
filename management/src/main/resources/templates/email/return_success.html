@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Thông báo trả sách thành công</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 20px;">
+<div style="max-width: 600px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+  <h2 style="color: #333; text-align: center;">Thông báo trả sách thành công</h2>
+  <p>Xin chào <span th:text="${name}"></span>,</p>
+  <p>Bạn đã trả thành công sách <strong><span th:text="${title}"></span></strong>.</p>
+  <p>Ngày trả sách của bạn là <strong><span th:text="${returnDate}"></span></strong>.</p>
+  <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+  <p style="color: #666; font-size: 12px;">Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.</p>
+</div>
+</body>
+</html>

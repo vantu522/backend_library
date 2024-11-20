@@ -8,6 +8,7 @@ import com.backend.management.repository.BookRepo;
 import com.backend.management.repository.MemberRepo;
 import com.backend.management.repository.TransactionHistoryRepo;
 import com.mongodb.lang.Nullable;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,10 @@ public class TransactionService {
     private MemberRepo memberRepo;
     @Autowired
     private TransactionHistoryRepo transactionHistoryRepo;
+
+    @Autowired
+    private EmailService emailService;
+    private Book book;
 
     //  private Transaction transaction;
     private Member member;
@@ -143,6 +148,22 @@ public class TransactionService {
         bookRepo.save(book);
         memberRepo.save(member);
 
+
+        try {
+            emailService.sendBorrowSuccessEmail(
+                    member.getName(),
+                    member.getEmail(),
+                    book.getTitle(),
+                    borrowDate,
+                    dueDate
+            );
+        } catch (MessagingException e) {
+            System.err.println("Gửi email thất bại: " + e.getMessage());
+
+        }
+
+
+
         return "Mượn sách thành công. Hạn trả là " + dueDate;
     }
 
@@ -242,6 +263,18 @@ public class TransactionService {
         // Lưu giao dịch trả sách và cập nhật thông tin sách
         transactionHistoryRepo.save(returnTransaction);
         bookRepo.save(book);
+         LocalDateTime returnDate = LocalDateTime.now();
+        try {
+            emailService.sendReturnSuccessEmail(
+                    member.getName(),
+                    member.getEmail(),
+                    book.getTitle(),
+                    returnDate
+            );
+        } catch (MessagingException e) {
+            System.err.println("Gửi email thất bại: " + e.getMessage());
+
+        }
 
         return "Trả sách thành công";
     }
@@ -344,6 +377,18 @@ public class TransactionService {
 
             // Lưu giao dịch gia hạn vào cơ sở dữ liệu
             transactionHistoryRepo.save(renewTransaction);
+
+            try {
+                emailService.sendRenewalSuccessEmail(
+                        member.getName(),
+                        member.getEmail(),
+                        book.getTitle(),
+                        newDueDate
+                );
+            } catch (MessagingException e) {
+                System.err.println("Gửi email thất bại: " + e.getMessage());
+
+            }
 
             // Trả về thông báo thành công
             return "Gia hạn sách thành công. Hạn mới là " + newDueDate;
