@@ -8,12 +8,16 @@ import com.backend.management.repository.BookRepo;
 import com.backend.management.utils.SlugUtil;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.*;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.mongodb.core.query.Query;
+
+
+import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,6 +155,49 @@ public class BookService {
                                 .anyMatch(smallCategoty -> SlugUtil.toSlug(smallCategoty).equals(subSlug))))
                 .collect(Collectors.toList());
     }
+
+    // chinh sua ten the loai lon
+    public void updateBigCategoryName(String oldName, String newName){
+
+        Query query = new Query(Criteria.where("bigCategory.name").is(oldName));
+
+        Update update = new Update().set("bigCategory.$.name", newName);
+
+        // Thực hiện cập nhật trên tất cả sách phù hợp
+        mongoTemplate.updateMulti(query, update, Book.class);
+    }
+
+    // xoa ten the loai lon
+    public void deleteBigCategoryName(String bigCategoryName){
+        Query query = new Query(Criteria.where("bigCategory.name").is(bigCategoryName));
+        mongoTemplate.remove(query,Book.class);
+    }
+    public void updateSmallCategory(String bigCategoryName, String oldSmallCategoryName, String newSmallCategoryName) {
+        // Tìm tài liệu có bigCategory và smallCategory khớp với điều kiện
+        Query query = new Query(Criteria.where("bigCategory")
+                .elemMatch(Criteria.where("name").is(bigCategoryName)
+                        .and("smallCategory").is(oldSmallCategoryName)));
+
+        // Lấy danh sách sách khớp
+        List<Book> books = mongoTemplate.find(query, Book.class);
+
+        for (Book book : books) {
+            book.getBigCategory().forEach(bigCategory -> {
+                if (bigCategory.getName().equals(bigCategoryName)) {
+                    // Cập nhật smallCategory
+                    List<String> smallCategories = bigCategory.getSmallCategory();
+                    for (int i = 0; i < smallCategories.size(); i++) {
+                        if (smallCategories.get(i).equals(oldSmallCategoryName)) {
+                            smallCategories.set(i, newSmallCategoryName);
+                        }
+                    }
+                }
+            });
+            // Lưu lại thay đổi
+            mongoTemplate.save(book);
+        }
+    }
+
 
 
 }
