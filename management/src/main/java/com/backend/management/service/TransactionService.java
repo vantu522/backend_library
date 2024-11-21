@@ -136,14 +136,13 @@ public class TransactionService {
 
 
 
-    public String returnBook(String name, String  title, String phoneNumber) {
+    public String returnBook(String name, String title, String phoneNumber) {
         // Tìm thành viên theo số điện thoại
         if (phoneNumber == null || phoneNumber.isEmpty()) {
             return "Số điện thoại không được để trống";
         }
 
-        Member member = null;
-        member = memberRepo.findByPhoneNumber(phoneNumber);
+        Member member = memberRepo.findByPhoneNumber(phoneNumber);
         if (member == null) {
             return "Không tìm thấy thành viên với số điện thoại này";
         }
@@ -154,13 +153,13 @@ public class TransactionService {
             return "Không tìm thấy sách với tiêu đề này";
         }
 
+        // Tìm các giao dịch mượn liên quan
         List<TransactionHistory> borrowTransactions = transactionHistoryRepo.findByMemberIdAndBookIdAndTransactionTypeAndStatus(
                 member.getMemberId(), book.getBookId(), "Mượn", true);
 
         if (borrowTransactions.isEmpty()) {
             return "Thành viên chưa mượn sách này hoặc sách đã được trả";
         }
-
 
         LocalDateTime returnDate = LocalDateTime.now();
 
@@ -172,7 +171,15 @@ public class TransactionService {
             book.setAvailability(true);
         }
 
-        // Tạo bản ghi lịch sử giao dịch
+        // Đánh dấu tất cả các giao dịch mượn liên quan thành false
+        for (TransactionHistory borrowTransaction : borrowTransactions) {
+            borrowTransaction.setStatus(false);
+            borrowTransaction.setDescription(borrowTransaction.getDescription() +
+                    " (Đã trả vào ngày " + returnDate + ")");
+        }
+        transactionHistoryRepo.saveAll(borrowTransactions);
+
+        // Tạo bản ghi lịch sử giao dịch mới cho việc trả sách
         TransactionHistory history = new TransactionHistory();
         history.setMemberId(member.getMemberId());
         history.setMemberName(member.getName());
@@ -185,13 +192,14 @@ public class TransactionService {
         history.setStatus(false);
         history.setDescription("Trả sách: " + book.getTitle() + ", Ngày trả: " + returnDate);
 
-        // Lưu giao dịch vào cơ sở dữ liệu
+        // Lưu giao dịch trả sách vào cơ sở dữ liệu
         transactionHistoryRepo.save(history);
 
         // Lưu thay đổi vào cơ sở dữ liệu
         bookRepo.save(book);
         memberRepo.save(member);
 
+        // Gửi email thông báo thành công
         try {
             emailService.sendReturnSuccessEmail(
                     member.getName(),
@@ -201,11 +209,11 @@ public class TransactionService {
             );
         } catch (MessagingException e) {
             System.err.println("Gửi email thất bại: " + e.getMessage());
-
         }
 
         return "Trả sách thành công vào ngày " + returnDate;
     }
+
 
     public String renewBook(String name, String title, String phoneNumber) {
 //        String nameSlug = toSlug(name);
@@ -355,5 +363,4 @@ public class TransactionService {
     }
 
 }
-
 
