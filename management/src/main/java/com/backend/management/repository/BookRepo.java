@@ -20,7 +20,7 @@ public interface BookRepo extends MongoRepository<Book, String> {
 
     Optional<Book> findByBookId(String bookId);
 
-    Optional<Book> findByTitle (String title);
+    Book findByTitle (String title);
 
     // dem tat ca sos sasch
     @Query(value = "{}", fields = "{quantity: 1}")

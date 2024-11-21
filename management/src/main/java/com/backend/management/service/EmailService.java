@@ -1,15 +1,27 @@
 package com.backend.management.service;
 
+import com.backend.management.model.Member;
+import com.backend.management.model.Transaction;
+import com.backend.management.model.TransactionHistory;
+import com.backend.management.repository.MemberRepo;
+import com.backend.management.repository.TransactionHistoryRepo;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+
 import org.thymeleaf.TemplateEngine;
+
+import static java.lang.System.in;
 
 @Service
 public class EmailService {
@@ -19,6 +31,11 @@ public class EmailService {
 
     @Autowired
     private TemplateEngine templateEngine;
+    @Autowired
+    private MemberRepo memberRepo;
+
+    @Autowired
+    private TransactionHistoryRepo transactionHistoryRepo;
 
     // Gửi thông báo mượn sách thành công
     public void sendBorrowSuccessEmail(String name, String email, String title, LocalDateTime borrowDate, LocalDateTime dueDate) throws MessagingException {
@@ -57,22 +74,15 @@ public class EmailService {
     // Gửi email thông báo sắp hết hạn (1 ngày trước khi hết hạn)
     public void sendDueDateReminderEmail(String name, String email, String title, LocalDateTime dueDate) throws MessagingException {
         // Tính toán thời gian gửi email là dueDate - 1 ngày
-        LocalDateTime sendDate = dueDate.minusDays(1); // Trừ 1 ngày để gửi email
 
         // Nếu ngày gửi email là hôm nay hoặc trong tương lai, tiến hành gửi email
-        if (sendDate.isBefore(LocalDateTime.now())) {
-            Context context = new Context();
-            context.setVariable("name", name);
-            context.setVariable("title", title);
-            context.setVariable("dueDate", dueDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+        Context context = new Context();
+        context.setVariable("name", name);
+        context.setVariable("title", title);
+        context.setVariable("dueDate", dueDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
 
-            String emailContent = templateEngine.process("email/due_date_reminder", context);
-            sendEmail(email, "Thông báo sách sắp hết hạn", emailContent);
-        } else {
-            // Bạn có thể thêm logic để lên lịch gửi email vào đúng thời gian tính toán ở đây nếu cần
-            // Ví dụ, bạn có thể lưu lại thông tin và sử dụng một công cụ như @Scheduled để gửi email đúng lúc
-            System.out.println("Email sẽ được gửi vào " + sendDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")));
-        }
+        String emailContent = templateEngine.process("email/due_date_reminder", context);
+        sendEmail(email, "Thông báo sách sắp hết hạn", emailContent);
     }
 
     // Phương thức gửi email chung
@@ -84,4 +94,33 @@ public class EmailService {
         helper.setText(content, true);
         mailSender.send(mimeMessage);
     }
-}
+
+    @Scheduled(cron = "0 52 15 * * ?", zone = "Asia/Ho_Chi_Minh")
+    public void sendDueDateReminderBooks() {
+        List<TransactionHistory> borrowedBooks = transactionHistoryRepo.findByTransactionTypeAndStatus("Mượn", true);
+
+        for (TransactionHistory borrowedBook : borrowedBooks) {
+//            if (borrowedBook.getDueDate() != null &&
+//                    borrowedBook.getDueDate().minusDays(1).toLocalDate().isEqual(LocalDate.now())) {
+
+                String memberId = borrowedBook.getMemberId();
+                Member member = memberRepo.findByMemberId(memberId).orElse(null);
+                if (member != null && member.getEmail() != null) {
+                    try {
+                        sendDueDateReminderEmail(member.getName(), member.getEmail(), borrowedBook.getTitle(), borrowedBook.getDueDate());
+                        System.out.println("Gửi email nhắc nhở thành công đến: " + member.getEmail());
+                    } catch (Exception e) {
+                        System.err.println("Không thể gửi email nhắc nhở đến: " + member.getEmail());
+                        e.printStackTrace();
+                    }
+                } else {
+                    // Log nếu thành viên không có email
+                    System.err.println("Thành viên không có email hoặc email rỗng: " + borrowedBook.getMemberName());
+                }
+            }
+        }
+    }
+
+
+
+
