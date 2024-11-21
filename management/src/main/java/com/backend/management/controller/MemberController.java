@@ -50,6 +50,11 @@ public class MemberController {
         memberService.deleteMemberById(memberId);
     }
 
+    @GetMapping("/count")
+    public long countMembers(){
+        return memberService.countMembers();
+    }
+
 
 
 }

@@ -95,6 +95,11 @@ public class MemberService {
     }
 
 
+    public long countMembers(){
+        return memberRepo.count();
+    }
+
+
 
 
 

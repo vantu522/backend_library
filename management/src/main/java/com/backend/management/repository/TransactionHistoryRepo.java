@@ -25,5 +25,6 @@ public interface TransactionHistoryRepo extends MongoRepository<TransactionHisto
 
     List<TransactionHistory> findByMemberIdAndStatusAndDueDateBefore(String memberId, boolean status, LocalDateTime dueDate);
 
+    List<TransactionHistory> findByTransactionTypeAndStatus(String transactionType, boolean status);
 
 }

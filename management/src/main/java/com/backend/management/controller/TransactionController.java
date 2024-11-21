@@ -18,8 +18,13 @@ public class TransactionController {
     @Autowired
     private TransactionService transactionService;
 
-    @GetMapping("/borrowed")
+    @GetMapping("/count")
+    public ResponseEntity<Integer> getBorrowedBooksCout(){
+        int borrowedBooksCount = transactionService.countCurrentltBorrowedBooks();
+        return ResponseEntity.ok(borrowedBooksCount);
+    }
 
+    @GetMapping("/borrowed")
     public ResponseEntity<List<Map<String, String>>> getBookBorowed() {
         List<Map<String, String>> transactions = transactionService.getAllBorrowTransactions();
         return ResponseEntity.ok(transactions);

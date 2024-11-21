@@ -7,6 +7,7 @@ import com.backend.management.model.TransactionHistory;
 import com.backend.management.repository.BookRepo;
 import com.backend.management.repository.MemberRepo;
 import com.backend.management.repository.TransactionHistoryRepo;
+import com.backend.management.utils.SlugUtil;
 import com.mongodb.lang.Nullable;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,25 +35,18 @@ public class TransactionService {
     //  private Transaction transaction;
     private Member member;
 
-    private String toSlug(String input) {
-        if (input == null)
-            return "";
-
-        return Normalizer.normalize(input, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "")
-                .toLowerCase()
-                .replaceAll("đ", "d")
-                .replaceAll("/", " ")
-                .replaceAll("[^a-z0-9\\s-]", "")
-                .trim()
-                .replaceAll("\\s+", "-");
+    //dem so luong sach dang muon
+    public int countCurrentltBorrowedBooks(){
+        return transactionHistoryRepo
+                .findByTransactionTypeAndStatus("Mượn", true)
+                .size();
     }
 
     // Phương thức mượn sách
     public String borrowBook(String name, String title, @Nullable String memberId, @Nullable String bookId) {
         // Tạo slug cho name và title
-        String nameSlug = toSlug(name);
-        String titleSlug = toSlug(title);
+        String nameSlug = SlugUtil.toSlug(name);
+        String titleSlug = SlugUtil.toSlug(title);
 
         // Member member = null;
 
@@ -66,7 +60,7 @@ public class TransactionService {
         } else {
             // Nếu không có memberId, tìm tất cả thành viên có tên trùng
             List<Member> members = memberRepo.findAll().stream()
-                    .filter(m -> toSlug(m.getName()).equals(nameSlug))
+                    .filter(m -> SlugUtil.toSlug(m.getName()).equals(nameSlug))
                     .toList();
 
             if (members.isEmpty()) {
@@ -95,7 +89,7 @@ public class TransactionService {
         } else {
             // Tìm sách theo slug title nếu bookId không có
             bookOpt = bookRepo.findAll().stream()
-                    .filter(book -> toSlug(book.getTitle()).equals(titleSlug))
+                    .filter(book -> SlugUtil.toSlug(book.getTitle()).equals(titleSlug))
                     .findFirst();
         }
 
@@ -170,8 +164,8 @@ public class TransactionService {
 
     public String returnBook(String name, String title, @Nullable String memberId, @Nullable String bookId) {
         // Tạo slug cho name và title
-        String nameSlug = toSlug(name);
-        String titleSlug = toSlug(title);
+        String nameSlug = SlugUtil.toSlug(name);
+        String titleSlug = SlugUtil.toSlug(title);
 
         // Tìm thành viên theo memberId nếu có
         Member member = null;
@@ -183,7 +177,7 @@ public class TransactionService {
         } else {
             // Nếu không có memberId, tìm tất cả thành viên có tên trùng
             List<Member> members = memberRepo.findAll().stream()
-                    .filter(m -> toSlug(m.getName()).equals(nameSlug))
+                    .filter(m -> SlugUtil.toSlug(m.getName()).equals(nameSlug))
                     .toList();
 
             if (members.isEmpty()) {
@@ -218,7 +212,7 @@ public class TransactionService {
         } else {
             // Tìm sách theo slug title nếu bookId không có
             bookOpt = bookRepo.findAll().stream()
-                    .filter(book -> toSlug(book.getTitle()).equals(titleSlug))
+                    .filter(book -> SlugUtil.toSlug(book.getTitle()).equals(titleSlug))
                     .findFirst();
         }
 
@@ -281,8 +275,8 @@ public class TransactionService {
 
     public String renewBook(String name, String title, @Nullable String memberId, @Nullable String bookId) {
         // Tạo slug cho name và title
-        String nameSlug = toSlug(name);
-        String titleSlug = toSlug(title);
+        String nameSlug = SlugUtil.toSlug(name);
+        String titleSlug = SlugUtil.toSlug(title);
 
         // Tìm thành viên theo memberId nếu có
         Member member = null;
@@ -294,7 +288,7 @@ public class TransactionService {
         } else {
             // Nếu không có memberId, tìm tất cả thành viên có tên trùng
             List<Member> members = memberRepo.findAll().stream()
-                    .filter(m -> toSlug(m.getName()).equals(nameSlug))
+                    .filter(m -> SlugUtil.toSlug(m.getName()).equals(nameSlug))
                     .toList();
 
             if (members.isEmpty()) {
@@ -321,7 +315,7 @@ public class TransactionService {
         } else {
             // Tìm sách theo slug title nếu bookId không có
             bookOpt = bookRepo.findAll().stream()
-                    .filter(book -> toSlug(book.getTitle()).equals(titleSlug))
+                    .filter(book -> SlugUtil.toSlug(book.getTitle()).equals(titleSlug))
                     .findFirst();
         }
 
