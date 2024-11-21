@@ -34,12 +34,7 @@ public class MemberController {
         return memberService.getMemberByNameAndPhoneNumber(name,phoneNumber);
     }
 
-    //them thanh vien
-//    @PostMapping
-//    public ResponseEntity<Member> addMember(@RequestBody Member member){
-//      Member savedMember = memberService.addMember(member);
-//      return new ResponseEntity<>(savedMember, HttpStatus.CREATED);
-//    }r
+
     @PostMapping("/register")
     public ResponseEntity<?> registerMember(@Valid @RequestBody Member member) {
         try {

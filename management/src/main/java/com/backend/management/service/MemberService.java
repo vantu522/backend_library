@@ -56,11 +56,6 @@ public class MemberService {
 
     }
 
-//    //them thanh vien
-//    public Member addMember(Member member){
-//        return memberRepo.save(member);
-//    }
-
     //them thanh vien
     public Member createMember(Member member){
         // check email hop le chua
