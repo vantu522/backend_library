@@ -5,11 +5,13 @@ import com.backend.management.model.Member;
 import com.backend.management.repository.BookRepo;
 import com.backend.management.repository.MemberRepo;
 import com.backend.management.utils.SlugUtil;
+import jakarta.validation.constraints.Email;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -17,7 +19,11 @@ public class MemberService {
     @Autowired
     private MemberRepo memberRepo;
 
+    @Autowired
     private BookRepo bookRepo ;
+
+    @Autowired
+    private ValidationService validationService;
 
     //lay tat ca cac member
     public List<Member> getAllMembers(){
@@ -50,9 +56,25 @@ public class MemberService {
 
     }
 
+//    //them thanh vien
+//    public Member addMember(Member member){
+//        return memberRepo.save(member);
+//    }
+
     //them thanh vien
-    public Member addMember(Member member){
+    public Member createMember(Member member){
+        // check email hop le chua
+        validationService.isValidEmail(member.getEmail());
+
+        // kieam tra xem email ton tai chua
+        Optional<Member> existingMember = memberRepo.findByEmail(member.getEmail());
+        if(existingMember.isPresent()){
+            throw new IllegalArgumentException("email da su dung");
+
+        }
+
         return memberRepo.save(member);
+
     }
 
     // lay thanh vien theo id va sua
