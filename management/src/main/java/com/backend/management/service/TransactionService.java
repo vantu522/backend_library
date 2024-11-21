@@ -7,11 +7,11 @@ import com.backend.management.model.TransactionHistory;
 import com.backend.management.repository.BookRepo;
 import com.backend.management.repository.MemberRepo;
 import com.backend.management.repository.TransactionHistoryRepo;
-import com.backend.management.utils.SlugUtil;
 import com.mongodb.lang.Nullable;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.html.HTMLImageElement;
 
 import java.text.Normalizer;
 import java.time.LocalDateTime;
@@ -35,69 +35,27 @@ public class TransactionService {
     //  private Transaction transaction;
     private Member member;
 
-    //dem so luong sach dang muon
-    public int countCurrentltBorrowedBooks(){
-        return transactionHistoryRepo
-                .findByTransactionTypeAndStatus("Mượn", true)
-                .size();
-    }
 
     // Phương thức mượn sách
-    public String borrowBook(String name, String title, @Nullable String memberId, @Nullable String bookId) {
-        // Tạo slug cho name và title
-        String nameSlug = SlugUtil.toSlug(name);
-        String titleSlug = SlugUtil.toSlug(title);
+    public String borrowBook(String name, String title, String phoneNumber) {
+        Member member = null;
 
-        // Member member = null;
-
-        // Nếu có memberId, tìm thành viên theo memberId
-        if (memberId != null && !memberId.isEmpty()) {
-            member = memberRepo.findByMemberId(memberId).orElse(null);
+        // Tìm thành viên theo số điện thoại
+        if (phoneNumber != null && !phoneNumber.isEmpty()) {
+            member = memberRepo.findByPhoneNumber(phoneNumber);
             if (member == null) {
-                return "Không tìm thấy thành viên với memberId này";
+                return "Không tìm thấy thành viên với số điện thoại này";
             }
-            //return member.getMemberId();
         } else {
-            // Nếu không có memberId, tìm tất cả thành viên có tên trùng
-            List<Member> members = memberRepo.findAll().stream()
-                    .filter(m -> SlugUtil.toSlug(m.getName()).equals(nameSlug))
-                    .toList();
-
-            if (members.isEmpty()) {
-                return "Không tìm thấy thành viên nào có tên này";
-            }
-
-            // Nếu có nhiều thành viên trùng tên, yêu cầu người dùng chọn memberId
-            if (members.size() > 1) {
-                StringBuilder memberList = new StringBuilder("Có nhiều thành viên trùng tên, vui lòng chọn memberId:\n");
-                for (Member m : members) {
-                    memberList.append("ID: ").append(m.getMemberId())
-                            .append(" - Tên: ").append(m.getName())
-                            .append("\n");
-                }
-                return memberList.toString();
-            }
-
-            // Nếu chỉ có một thành viên, lấy thành viên đó
-            member = members.get(0);
+            return "Số điện thoại không được để trống";
         }
 
-        // Kiểm tra nếu bookId được cung cấp, lấy sách bằng bookId
-        Optional<Book> bookOpt = Optional.empty();
-        if (bookId != null && !bookId.isEmpty()) {
-            bookOpt = bookRepo.findById(bookId);
-        } else {
-            // Tìm sách theo slug title nếu bookId không có
-            bookOpt = bookRepo.findAll().stream()
-                    .filter(book -> SlugUtil.toSlug(book.getTitle()).equals(titleSlug))
-                    .findFirst();
-        }
+        Book book = bookRepo.findByTitle(title);
 
-        if (bookOpt.isEmpty()) {
-            return "Không tìm thấy sách này";
-        }
+//        if (book.isEmpty()) {
+//            return "Không tìm thấy sách với tiêu đề này";
+//        }
 
-        Book book = bookOpt.get();
 
         // Kiểm tra các điều kiện mượn sách
         if (book.getQuantity() == 0) {
@@ -106,6 +64,13 @@ public class TransactionService {
 
         if (member.getBooksBorrowed() == 5) {
             return "Không thể mượn quá năm quyển sách";
+        }
+
+        List<TransactionHistory> overdueTransactions = transactionHistoryRepo.findByPhoneNumberAndStatusAndDueDateBefore(
+                phoneNumber, true, LocalDateTime.now());
+
+        if (!overdueTransactions.isEmpty()) {
+            return "Không thể mượn sách mới vì có sách đã quá hạn. Vui lòng trả hết sách đã quá hạn.";
         }
 
         LocalDateTime borrowDate = LocalDateTime.now();
@@ -119,9 +84,6 @@ public class TransactionService {
             book.setAvailability(false);
         }
 
-        // Thêm một chuỗi mô tả giao dịch vào danh sách các giao dịch của thành viên
-        String transactionDescription = "Mượn sách: " + book.getTitle() + ", Hạn trả: " + dueDate;
-        member.getTransactions().add(transactionDescription);
 
         // Tạo bản ghi lịch sử giao dịch
         TransactionHistory history = new TransactionHistory();
@@ -129,6 +91,7 @@ public class TransactionService {
         history.setMemberName(member.getName());
         history.setBookId(book.getBookId());
         history.setTitle(book.getTitle());
+        history.setPhoneNumber(member.getPhoneNumber());
         history.setTransactionType("Mượn");
         history.setTransactionDate(borrowDate);
         history.setDueDate(dueDate);
@@ -142,7 +105,6 @@ public class TransactionService {
         bookRepo.save(book);
         memberRepo.save(member);
 
-
         try {
             emailService.sendBorrowSuccessEmail(
                     member.getName(),
@@ -153,76 +115,32 @@ public class TransactionService {
             );
         } catch (MessagingException e) {
             System.err.println("Gửi email thất bại: " + e.getMessage());
-
         }
-
-
 
         return "Mượn sách thành công. Hạn trả là " + dueDate;
     }
 
 
-    public String returnBook(String name, String title, @Nullable String memberId, @Nullable String bookId) {
-        // Tạo slug cho name và title
-        String nameSlug = SlugUtil.toSlug(name);
-        String titleSlug = SlugUtil.toSlug(title);
 
-        // Tìm thành viên theo memberId nếu có
+
+    public String returnBook(String name, String  title, String phoneNumber) {
+        // Tìm thành viên theo số điện thoại
+        if (phoneNumber == null || phoneNumber.isEmpty()) {
+            return "Số điện thoại không được để trống";
+        }
+
         Member member = null;
-        if (memberId != null && !memberId.isEmpty()) {
-            member = memberRepo.findByMemberId(memberId).orElse(null);
-            if (member == null) {
-                return "Không tìm thấy thành viên với memberId này";
-            }
-        } else {
-            // Nếu không có memberId, tìm tất cả thành viên có tên trùng
-            List<Member> members = memberRepo.findAll().stream()
-                    .filter(m -> SlugUtil.toSlug(m.getName()).equals(nameSlug))
-                    .toList();
-
-            if (members.isEmpty()) {
-                return "Không tìm thấy thành viên nào có tên này";
-            }
-
-            if (members.size() > 1) {
-                StringBuilder memberList = new StringBuilder("Có nhiều thành viên trùng tên, vui lòng chọn memberId:\n");
-                for (Member m : members) {
-                    memberList.append("ID: ").append(m.getMemberId())
-                            .append(" - Tên: ").append(m.getName())
-                            .append("\n");
-                }
-                return memberList.toString();
-            }
-
-            member = members.get(0);
+        member = memberRepo.findByPhoneNumber(phoneNumber);
+        if (member == null) {
+            return "Không tìm thấy thành viên với số điện thoại này";
         }
 
-        List<TransactionHistory> overdueTransactions = transactionHistoryRepo.findByMemberIdAndStatusAndDueDateBefore(
-                memberId, true, LocalDateTime.now());
-
-        if (!overdueTransactions.isEmpty()) {
-            return "Không thể mượn sách mới vì có sách đã quá hạn. Vui lòng trả hết sách đã quá hạn.";
+        // Tìm sách theo tiêu đề
+        Book book = bookRepo.findByTitle(title);
+        if (book == null) {
+            return "Không tìm thấy sách với tiêu đề này";
         }
 
-
-        // Kiểm tra nếu bookId được cung cấp, lấy sách bằng bookId
-        Optional<Book> bookOpt = Optional.empty();
-        if (bookId != null && !bookId.isEmpty()) {
-            bookOpt = bookRepo.findById(bookId);
-        } else {
-            // Tìm sách theo slug title nếu bookId không có
-            bookOpt = bookRepo.findAll().stream()
-                    .filter(book -> SlugUtil.toSlug(book.getTitle()).equals(titleSlug))
-                    .findFirst();
-        }
-
-        if (bookOpt.isEmpty()) {
-            return "Không tìm thấy sách này";
-        }
-
-        Book book = bookOpt.get();
-
-        // Kiểm tra giao dịch mượn trong bảng transactionHistory với status = true
         List<TransactionHistory> borrowTransactions = transactionHistoryRepo.findByMemberIdAndBookIdAndTransactionTypeAndStatus(
                 member.getMemberId(), book.getBookId(), "Mượn", true);
 
@@ -230,34 +148,37 @@ public class TransactionService {
             return "Thành viên chưa mượn sách này hoặc sách đã được trả";
         }
 
-        // Nếu giao dịch mượn tồn tại, cập nhật số lượng sách và trạng thái
+
+        LocalDateTime returnDate = LocalDateTime.now();
+
+        // Cập nhật số lượng sách và số lượng sách đã mượn của thành viên
         book.setQuantity(book.getQuantity() + 1);
-        member.setBooksBorrowed(member.getBooksBorrowed()-1);
+        member.setBooksBorrowed(member.getBooksBorrowed() - 1);
+
         if (book.getQuantity() > 0) {
             book.setAvailability(true);
         }
 
-        // Cập nhật trạng thái của giao dịch mượn (status = false)
-        TransactionHistory borrowedTransaction = borrowTransactions.get(0);
-        borrowedTransaction.setStatus(false);
-        transactionHistoryRepo.save(borrowedTransaction);
+        // Tạo bản ghi lịch sử giao dịch
+        TransactionHistory history = new TransactionHistory();
+        history.setMemberId(member.getMemberId());
+        history.setMemberName(member.getName());
+        history.setBookId(book.getBookId());
+        history.setTitle(book.getTitle());
+        history.setPhoneNumber(member.getPhoneNumber());
+        history.setTransactionType("Trả");
+        history.setTransactionDate(returnDate);
+        history.setDueDate(null); // Không cần hạn trả khi trả sách
+        history.setStatus(false);
+        history.setDescription("Trả sách: " + book.getTitle() + ", Ngày trả: " + returnDate);
 
-        // Tạo bản ghi giao dịch trả sách mới
-        TransactionHistory returnTransaction = new TransactionHistory();
-        returnTransaction.setMemberId(member.getMemberId());
-        returnTransaction.setMemberName(member.getName());
-        returnTransaction.setBookId(book.getBookId());
-        returnTransaction.setTitle(book.getTitle());
-        returnTransaction.setTransactionType("Trả");
-        returnTransaction.setTransactionDate(LocalDateTime.now());
-        returnTransaction.setDueDate(null); // Không cần ngày hạn khi trả sách
-        returnTransaction.setDescription("Trả sách: " + book.getTitle());
-        returnTransaction.setStatus(false); // Đánh dấu là giao dịch "Trả"
+        // Lưu giao dịch vào cơ sở dữ liệu
+        transactionHistoryRepo.save(history);
 
-        // Lưu giao dịch trả sách và cập nhật thông tin sách
-        transactionHistoryRepo.save(returnTransaction);
+        // Lưu thay đổi vào cơ sở dữ liệu
         bookRepo.save(book);
-         LocalDateTime returnDate = LocalDateTime.now();
+        memberRepo.save(member);
+
         try {
             emailService.sendReturnSuccessEmail(
                     member.getName(),
@@ -270,60 +191,25 @@ public class TransactionService {
 
         }
 
-        return "Trả sách thành công";
+        return "Trả sách thành công vào ngày " + returnDate;
     }
 
-    public String renewBook(String name, String title, @Nullable String memberId, @Nullable String bookId) {
-        // Tạo slug cho name và title
-        String nameSlug = SlugUtil.toSlug(name);
-        String titleSlug = SlugUtil.toSlug(title);
+    public String renewBook(String name, String title, String phoneNumber) {
+//        String nameSlug = toSlug(name);
+//        String titleSlug = toSlug(title);
 
-        // Tìm thành viên theo memberId nếu có
         Member member = null;
-        if (memberId != null && !memberId.isEmpty()) {
-            member = memberRepo.findByMemberId(memberId).orElse(null);
-            if (member == null) {
-                return "Không tìm thấy thành viên với memberId này";
-            }
-        } else {
-            // Nếu không có memberId, tìm tất cả thành viên có tên trùng
-            List<Member> members = memberRepo.findAll().stream()
-                    .filter(m -> SlugUtil.toSlug(m.getName()).equals(nameSlug))
-                    .toList();
+        member = memberRepo.findByPhoneNumber(phoneNumber);
 
-            if (members.isEmpty()) {
-                return "Không tìm thấy thành viên nào có tên này";
-            }
-
-            if (members.size() > 1) {
-                StringBuilder memberList = new StringBuilder("Có nhiều thành viên trùng tên, vui lòng chọn memberId:\n");
-                for (Member m : members) {
-                    memberList.append("ID: ").append(m.getMemberId())
-                            .append(" - Tên: ").append(m.getName())
-                            .append("\n");
-                }
-                return memberList.toString();
-            }
-
-            member = members.get(0);
+        if (member == null) {
+            return "Không tìm thấy thành viên với số điện thoại này";
         }
 
-        // Kiểm tra nếu bookId được cung cấp, lấy sách bằng bookId
-        Optional<Book> bookOpt = Optional.empty();
-        if (bookId != null && !bookId.isEmpty()) {
-            bookOpt = bookRepo.findById(bookId);
-        } else {
-            // Tìm sách theo slug title nếu bookId không có
-            bookOpt = bookRepo.findAll().stream()
-                    .filter(book -> SlugUtil.toSlug(book.getTitle()).equals(titleSlug))
-                    .findFirst();
-        }
+        Book book = bookRepo.findByTitle(title);
 
-        if (bookOpt.isEmpty()) {
-            return "Không tìm thấy sách này";
+        if (book == null) {
+            return "Không tìm thấy sách với title này";
         }
-
-        Book book = bookOpt.get();
 
         // Kiểm tra giao dịch mượn trong bảng transactionHistory với status = true
         List<TransactionHistory> borrowTransactions = transactionHistoryRepo.findByMemberIdAndBookIdAndTransactionTypeAndStatus(
@@ -333,37 +219,30 @@ public class TransactionService {
             return "Thành viên chưa mượn sách này hoặc sách đã được trả";
         }
 
-        // Lấy giao dịch mượn đầu tiên (có thể có nhiều giao dịch nhưng ta chỉ lấy giao dịch đầu tiên)
         TransactionHistory borrowTransaction = borrowTransactions.get(0);
 
-        // Kiểm tra số lần gia hạn trước khi gia hạn
         List<TransactionHistory> renewTransactions = transactionHistoryRepo.findByMemberIdAndBookIdAndTransactionTypeAndStatus(
                 member.getMemberId(), book.getBookId(), "Gia hạn", true);
-        // giới hạn số lần gia hanj sách
         int maxRenewCount = 2;
         if (renewTransactions.size() >= maxRenewCount) {
             return "Sách này đã đạt giới hạn gia hạn tối đa.";
         }
 
-        // Kiểm tra ngày hết hạn sách, nếu còn nhỏ hơn 7 ngày thì mới cần gia hạn
         LocalDateTime dueDate = borrowTransaction.getDueDate();
         LocalDateTime now = LocalDateTime.now();
 
-        // Tính số ngày còn lại trước khi hết hạn
         long daysLeft = ChronoUnit.DAYS.between(now, dueDate);
 
-        // Nếu thời gian còn lại ít hơn 7 ngày, thực hiện gia hạn
         if (daysLeft < 7) {
-            // Gia hạn ngày trả sách
             LocalDateTime newDueDate = now.plus(7, ChronoUnit.DAYS);
 
-            // Tạo lịch sử gia hạn
             TransactionHistory renewTransaction = new TransactionHistory();
             renewTransaction.setMemberId(member.getMemberId());
             renewTransaction.setMemberName(member.getName());
             renewTransaction.setBookId(book.getBookId());
             renewTransaction.setTitle(book.getTitle());
             renewTransaction.setTransactionType("Gia hạn");
+            renewTransaction.setPhoneNumber(member.getPhoneNumber());
             renewTransaction.setTransactionDate(now);  // Ngày gia hạn hiện tại
             renewTransaction.setDueDate(newDueDate);  // Hạn mới
             renewTransaction.setStatus(true);
@@ -394,7 +273,7 @@ public class TransactionService {
 
     public List<Map<String, String>> getAllBorrowTransactions() {
         // Lấy tất cả các giao dịch có loại "Mượn"
-        List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionType("Mượn");
+        List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionTypeAndStatus("Mượn", true);
 
         // Chuyển đổi danh sách giao dịch thành danh sách kèm trạng thái
         List<Map<String, String>> result = new ArrayList<>();
@@ -404,6 +283,7 @@ public class TransactionService {
             transactionDetails.put("memberName", transaction.getMemberName());
             transactionDetails.put("bookId", transaction.getBookId());
             transactionDetails.put("bookTitle", transaction.getTitle());
+            transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
             transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
             transactionDetails.put("description", transaction.getDescription());
@@ -426,6 +306,8 @@ public class TransactionService {
             transactionDetails.put("memberName", transaction.getMemberName());
             transactionDetails.put("bookId", transaction.getBookId());
             transactionDetails.put("bookTitle", transaction.getTitle());
+            transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
+
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
             transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
             transactionDetails.put("description", transaction.getDescription());
@@ -447,6 +329,8 @@ public class TransactionService {
             transactionDetails.put("memberName", transaction.getMemberName());
             transactionDetails.put("bookId", transaction.getBookId());
             transactionDetails.put("bookTitle", transaction.getTitle());
+            transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
+
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
             transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
             transactionDetails.put("description", transaction.getDescription());

@@ -11,13 +11,12 @@ import java.util.List;
 public class Member extends Person {
     @Id
     private String memberId;
-    private List<String> transactions;
+
     private int booksBorrowed;
 
-    public Member(String name, String email, String phoneNumber, String address, String memberId, List<String> transactions, int booksBorrowed) {
+    public Member(String name, String email, String phoneNumber, String address, String memberId,  int booksBorrowed) {
         super(name, email, phoneNumber, address);
         this.memberId = memberId;
-        this.transactions = transactions;
         this.booksBorrowed = booksBorrowed;
     }
 
@@ -29,13 +28,7 @@ public class Member extends Person {
         this.memberId = memberId;
     }
 
-    public List<String> getTransactions() {
-        return transactions;
-    }
 
-    public void setTransactions(List<String> transactions) {
-        this.transactions = transactions;
-    }
 
     public int getBooksBorrowed() {
         return booksBorrowed;

@@ -15,7 +15,7 @@ public class TransactionHistory {
     private String memberName;  // Tên người mượn
     private String bookId;
     private String title;
-    private List<String> author;
+    private String phoneNumber;
     private String transactionType;
     private LocalDateTime transactionDate;
     private LocalDateTime dueDate;  // Dùng cho mượn hoặc gia hạn nếu có
@@ -63,6 +63,14 @@ public class TransactionHistory {
         this.title = title;
     }
 
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
 
     public String getTransactionType() {
         return transactionType;
@@ -105,11 +113,6 @@ public class TransactionHistory {
         this.description = description;
     }
 
-    public List<String> getAuthor(List<String> author) {
-        return author;
-    }
-    public void setAuthor(List<String> author) {
-        this.author = author;
-    }
+
 
 }

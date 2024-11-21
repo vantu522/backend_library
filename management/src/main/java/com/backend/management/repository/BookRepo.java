@@ -20,9 +20,26 @@ public interface BookRepo extends MongoRepository<Book, String> {
 
     Optional<Book> findByBookId(String bookId);
 
+    Book findByTitle (String title);
+
     // dem tat ca sos sasch
     @Query(value = "{}", fields = "{quantity: 1}")
     List<Book> findAllQuantities();
+
+    // Tìm theo tên
+    @Query("{ 'name': { $regex: ?0, $options: 'i' }}")
+    Page<Book> findByNameRegex(Pattern pattern, Pageable pageable);
+
+    // Tìm theo tác giả
+    @Query("{ 'author': { $elemMatch: { $regex: ?0, $options: 'i' }}}")
+    Page<Book> findByAuthorRegex(Pattern pattern, Pageable pageable);
+
+    // Tìm theo cả tên và tác giả
+    @Query("{ $and: [ " +
+            "{ 'name': { $regex: ?0, $options: 'i' }}, " +
+            "{ 'author': { $elemMatch: { $regex: ?1, $options: 'i' }}} " +
+            "]}")
+    Page<Book> findByNameRegexAndAuthorRegex(Pattern namePattern, Pattern authorPattern, Pageable pageable);
 
     // tinh tong sach moi the loai lonw
     @Aggregation(pipeline = {
@@ -41,17 +58,20 @@ public interface BookRepo extends MongoRepository<Book, String> {
     List<String> findDistinctBigCategories();
 
 
+    // Sửa lại phương thức query small categories
     @Query(value = "{ 'bigCategory': { $elemMatch: { 'name': ?0 } } }",
             fields = "{ 'bigCategory.$': 1 }")
     List<Book> findByBigCategoryName(String bigCategoryName);
 
-
-
-    @Query("{ 'bigCategory.smallCategory': ?0 }")
-    List<Book> findBySmallCategoryName(String smallCategoryName);
-
-
-
+    // Thêm phương thức mới
+    @Query(value = "{ 'bigCategory': { " +
+           "$elemMatch: { " +
+           "'name': ?0, " +
+           "'smallCategory': { $in: [?1] }" +
+           "} } }")
+    Page<Book> findByBigCategoryAndSmallCategory(String bigCategory, 
+                                                String smallCategory, 
+                                                Pageable pageable);
 
 
 

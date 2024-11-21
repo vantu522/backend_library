@@ -18,11 +18,7 @@ public class TransactionController {
     @Autowired
     private TransactionService transactionService;
 
-    @GetMapping("/count")
-    public ResponseEntity<Integer> getBorrowedBooksCout(){
-        int borrowedBooksCount = transactionService.countCurrentltBorrowedBooks();
-        return ResponseEntity.ok(borrowedBooksCount);
-    }
+
 
     @GetMapping("/borrowed")
     public ResponseEntity<List<Map<String, String>>> getBookBorowed() {
@@ -48,8 +44,7 @@ public class TransactionController {
         // Kiểm tra dữ liệu đầu vào
         String name = requestBody.get("name");
         String title = requestBody.get("title");
-        String memberId = requestBody.get("memberId");
-        String bookId = requestBody.get("bookId");
+        String phoneNumber = requestBody.get("phoneNumber");
 
 //        if (name == null || name.isEmpty() || title == null || title.isEmpty() ) {
 //            return ResponseEntity.badRequest().body("Thiếu thông tin cần thiết: name, title, memberId, bookId");
@@ -57,7 +52,7 @@ public class TransactionController {
 
         try {
             // Gọi service để mượn sách
-            String result = transactionService.borrowBook(name, title, memberId, bookId);
+            String result = transactionService.borrowBook(name, title, phoneNumber);
 
             // Trả kết quả lại cho client
             return ResponseEntity.ok(result);
@@ -74,8 +69,7 @@ public class TransactionController {
         // Lấy thông tin từ request body
         String name = requestBody.get("name");
         String title = requestBody.get("title");
-        String memberId = requestBody.get("memberId");
-        String bookId = requestBody.get("bookId");
+        String phoneNumber = requestBody.get("phoneNumber");
 
 //        if (memberId == null || memberId.isEmpty() || bookId == null || bookId.isEmpty()) {
 //            return ResponseEntity.badRequest().body("Thiếu thông tin: memberId, bookId");
@@ -83,7 +77,7 @@ public class TransactionController {
 
         try {
             // Gọi service để trả sách
-            String result = transactionService.returnBook(name, title, memberId, bookId);
+            String result = transactionService.returnBook(name, title,phoneNumber);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             // Xử lý lỗi nếu có
@@ -96,11 +90,10 @@ public class TransactionController {
     public ResponseEntity<String> renewBook(@RequestBody Map<String, String> requestBody) {
         String name = requestBody.get("name");
         String title = requestBody.get("title");
-        String memberId = requestBody.get("memberId");
-        String bookId = requestBody.get("bookId");
+        String phoneNumber = requestBody.get("phoneNumber");
 
         try {
-            String result = transactionService.renewBook(name, title, memberId, bookId);
+            String result = transactionService.renewBook(name, title, phoneNumber);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Đã xảy ra lỗi khi trả sách: " + e.getMessage());
