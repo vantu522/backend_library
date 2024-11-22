@@ -139,6 +139,7 @@ public class MemberService {
                     Map<String, String> bookDetails = new HashMap<>();
                     bookDetails.put("bookId", transaction.getBookId());
                     bookDetails.put("bookTitle", transaction.getTitle());
+                    bookDetails.put("author", transaction.getAuthor());
                     bookDetails.put("transactionType", transaction.getTransactionType());
                     bookDetails.put("transactionDate", transaction.getTransactionDate().toString());
                     bookDetails.put("dueDate", transaction.getDueDate() != null ? transaction.getDueDate().toString() : "Không có hạn trả");

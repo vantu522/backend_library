@@ -366,5 +366,9 @@ public class TransactionService {
         return transactionHistoryRepo.countByTransactionTypeAndStatus("Mượn",true);
     }
 
+    public long countReturnedBooks(){
+        return transactionHistoryRepo.countByTransactionTypeAndStatus("Trả", false);
+    }
+
 }
 

@@ -6,6 +6,8 @@ import com.backend.management.model.CategoryCount;
 import com.backend.management.model.PaginatedResponse;
 import com.backend.management.repository.BookRepo;
 import com.backend.management.utils.SlugUtil;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.UpdateOptions;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -179,32 +181,24 @@ public class BookService {
         Query query = new Query(Criteria.where("bigCategory.name").is(bigCategoryName));
         mongoTemplate.remove(query,Book.class);
     }
+
     public void updateSmallCategory(String bigCategoryName, String oldSmallCategoryName, String newSmallCategoryName) {
-        // Tìm tài liệu có bigCategory và smallCategory khớp với điều kiện
+        // Tạo truy vấn tìm các document phù hợp
         Query query = new Query(Criteria.where("bigCategory")
                 .elemMatch(Criteria.where("name").is(bigCategoryName)
                         .and("smallCategory").is(oldSmallCategoryName)));
 
-        // Lấy danh sách sách khớp
-        List<Book> books = mongoTemplate.find(query, Book.class);
+        // Tạo update để thay đổi giá trị
+        Update update = new Update()
+                .set("bigCategory.$[elem].smallCategory.$[subelem]", newSmallCategoryName);
 
-        for (Book book : books) {
-            book.getBigCategory().forEach(bigCategory -> {
-                if (bigCategory.getName().equals(bigCategoryName)) {
-                    // Cập nhật smallCategory
-                    List<String> smallCategories = bigCategory.getSmallCategory();
-                    for (int i = 0; i < smallCategories.size(); i++) {
-                        if (smallCategories.get(i).equals(oldSmallCategoryName)) {
-                            smallCategories.set(i, newSmallCategoryName);
-                        }
-                    }
-                }
-            });
-            // Lưu lại thay đổi
-            mongoTemplate.save(book);
-        }
+        // Thực hiện update nhiều document với collection và options cụ thể
+        mongoTemplate.updateMulti(
+                query,
+                update,
+                Book.class,
+                mongoTemplate.getCollectionName(Book.class)
+        );
     }
-
-
 
 }

@@ -20,12 +20,17 @@ public class TransactionController {
 
 
     // dem so sach dang muon
-    @GetMapping("/count")
+    @GetMapping("/count-borrowed")
     public ResponseEntity<Long> getBorrowedBooksCount() {
         long count = transactionService.countBorrowedBooks();
         return ResponseEntity.ok(count);
     }
 
+   @GetMapping("/count-returned")
+   public ResponseEntity<Long> getReturnedBooksCount(){
+        long count = transactionService.countReturnedBooks();
+        return ResponseEntity.ok(count);
+   }
 
     @GetMapping("/borrowed")
     public ResponseEntity<List<Map<String, String>>> getBookBorowed() {
