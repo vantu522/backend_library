@@ -88,12 +88,13 @@ public class TransactionService {
 
 
         // Tạo bản ghi lịch sử giao dịch
+        String authorString = String.join(", ", book.getAuthor());
         TransactionHistory history = new TransactionHistory();
         history.setMemberId(member.getMemberId());
         history.setMemberName(member.getName());
         history.setBookId(book.getBookId());
         history.setTitle(book.getTitle());
-        history.setAuthor(book.getAuthor());
+        history.setAuthor(authorString);
         history.setPhoneNumber(member.getPhoneNumber());
         history.setTransactionType("Mượn");
         history.setTransactionDate(borrowDate);
@@ -170,12 +171,14 @@ public class TransactionService {
         transactionHistoryRepo.saveAll(borrowTransactions);
 
         // Tạo bản ghi lịch sử giao dịch mới cho việc trả sách
+        String authorString = String.join(", ", book.getAuthor());
+
         TransactionHistory history = new TransactionHistory();
         history.setMemberId(member.getMemberId());
         history.setMemberName(member.getName());
         history.setBookId(book.getBookId());
         history.setTitle(book.getTitle());
-        history.setAuthor(book.getAuthor());
+        history.setAuthor(authorString);
         history.setPhoneNumber(member.getPhoneNumber());
         history.setTransactionType("Trả");
         history.setTransactionDate(returnDate);
@@ -246,13 +249,15 @@ public class TransactionService {
 
         if (daysLeft < 7) {
             LocalDateTime newDueDate = now.plus(7, ChronoUnit.DAYS);
+            String authorString = String.join(", ", book.getAuthor());
+
 
             TransactionHistory renewTransaction = new TransactionHistory();
             renewTransaction.setMemberId(member.getMemberId());
             renewTransaction.setMemberName(member.getName());
             renewTransaction.setBookId(book.getBookId());
             renewTransaction.setTitle(book.getTitle());
-            renewTransaction.setAuthor(book.getAuthor());
+            renewTransaction.setAuthor(authorString);
             renewTransaction.setTransactionType("Gia hạn");
             renewTransaction.setPhoneNumber(member.getPhoneNumber());
             renewTransaction.setTransactionDate(now);  // Ngày gia hạn hiện tại
@@ -288,14 +293,13 @@ public class TransactionService {
         List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionTypeAndStatus("Mượn", true);
 
         List<Map<String, String>> result = new ArrayList<>();
-        String authorString = String.join(", ", book.getAuthor());
         for (TransactionHistory transaction : transactions) {
             Map<String, String> transactionDetails = new HashMap<>();
             transactionDetails.put("memberId", transaction.getMemberId());
             transactionDetails.put("memberName", transaction.getMemberName());
             transactionDetails.put("bookId", transaction.getBookId());
             transactionDetails.put("bookTitle", transaction.getTitle());
-            transactionDetails.put("author", authorString);
+            transactionDetails.put("author", transaction.getAuthor());
             transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
             transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
@@ -313,14 +317,13 @@ public class TransactionService {
 
         // Chuyển đổi sang định dạng mong muốn
         List<Map<String, String>> result = new ArrayList<>();
-        String authorString = String.join(", ", book.getAuthor());
         for (TransactionHistory transaction : transactions) {
             Map<String, String> transactionDetails = new HashMap<>();
             transactionDetails.put("memberId", transaction.getMemberId());
             transactionDetails.put("memberName", transaction.getMemberName());
             transactionDetails.put("bookId", transaction.getBookId());
             transactionDetails.put("bookTitle", transaction.getTitle());
-            transactionDetails.put("author", authorString);
+            transactionDetails.put("author", transaction.getAuthor());
             transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
             transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
@@ -338,7 +341,6 @@ public class TransactionService {
 
         // Chuyển đổi danh sách giao dịch thành danh sách kèm trạng thái
         List<Map<String, String>> result = new ArrayList<>();
-        String authorString = String.join(", ", book.getAuthor());
 
         for (TransactionHistory transaction : transactions) {
             Map<String, String> transactionDetails = new HashMap<>();
@@ -346,7 +348,7 @@ public class TransactionService {
             transactionDetails.put("memberName", transaction.getMemberName());
             transactionDetails.put("bookId", transaction.getBookId());
             transactionDetails.put("bookTitle", transaction.getTitle());
-            transactionDetails.put("author", authorString);
+            transactionDetails.put("author", transaction.getAuthor());
             transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
 
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
