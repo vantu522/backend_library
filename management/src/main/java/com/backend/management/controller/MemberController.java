@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/members")
@@ -75,10 +76,16 @@ public class MemberController {
     }
 
     @GetMapping("/count")
-    public long countMembers(){
-        return memberService.countMembers();
+    public ResponseEntity<Long > getMemberCount(){
+        long countMember = memberService.countAllMembers();
+        return ResponseEntity.ok(countMember);
     }
 
+    @GetMapping("/{memberId}/borrowed-renewed-books")
+    public ResponseEntity<Map<String, Object>> getBorrowedAndRenewedBooks(@PathVariable String memberId) {
+        Map<String, Object> response = memberService.getMemberBorrowedAndRenewedBooks(memberId);
+        return ResponseEntity.ok(response);
+    }
 
 
 }

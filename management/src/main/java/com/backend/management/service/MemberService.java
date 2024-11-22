@@ -2,15 +2,20 @@ package com.backend.management.service;
 
 import com.backend.management.exception.ResourceNotFoundException;
 import com.backend.management.model.Member;
+import com.backend.management.model.TransactionHistory;
 import com.backend.management.repository.BookRepo;
 import com.backend.management.repository.MemberRepo;
+import com.backend.management.repository.TransactionHistoryRepo;
+import com.backend.management.repository.TransactionRepo;
 import com.backend.management.utils.SlugUtil;
 import jakarta.validation.constraints.Email;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -24,6 +29,9 @@ public class MemberService {
 
     @Autowired
     private ValidationService validationService;
+
+    @Autowired
+    private TransactionHistoryRepo transactionHistoryRepo;
 
     //lay tat ca cac member
     public List<Member> getAllMembers(){
@@ -111,9 +119,42 @@ public class MemberService {
         }
     }
 
-
-    public long countMembers(){
+    // dem so luong ban doc
+    public long countAllMembers(){
         return memberRepo.count();
+    }
+
+    // xem ban doc dang muon hoac gia han nhung quyen sach nao
+    public Map<String, Object> getMemberBorrowedAndRenewedBooks(String memberId) {
+        // Tìm thành viên theo ID
+        Member member = memberRepo.findByMemberId(memberId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thành viên với ID: " + memberId));
+
+        // Lấy các giao dịch mượn hoặc gia hạn đang hoạt động
+        List<TransactionHistory> activeTransactions = transactionHistoryRepo.findByMemberIdAndStatus(memberId, true);
+
+        // Chuyển đổi danh sách giao dịch thành danh sách thông tin sách
+        List<Map<String, String>> borrowedBooks = activeTransactions.stream()
+                .map(transaction -> {
+                    Map<String, String> bookDetails = new HashMap<>();
+                    bookDetails.put("bookId", transaction.getBookId());
+                    bookDetails.put("bookTitle", transaction.getTitle());
+                    bookDetails.put("transactionType", transaction.getTransactionType());
+                    bookDetails.put("transactionDate", transaction.getTransactionDate().toString());
+                    bookDetails.put("dueDate", transaction.getDueDate() != null ? transaction.getDueDate().toString() : "Không có hạn trả");
+                    return bookDetails;
+                })
+                .collect(Collectors.toList());
+
+        // Kết hợp thông tin thành viên và danh sách sách
+        Map<String, Object> result = new HashMap<>();
+        result.put("memberId", member.getMemberId());
+        result.put("memberName", member.getName());
+        result.put("email", member.getEmail());
+        result.put("phoneNumber", member.getPhoneNumber());
+        result.put("borrowedAndRenewedBooks", borrowedBooks);
+
+        return result;
     }
 
 

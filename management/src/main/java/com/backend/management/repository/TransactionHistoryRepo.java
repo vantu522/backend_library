@@ -17,6 +17,7 @@ public interface TransactionHistoryRepo extends MongoRepository<TransactionHisto
     // Tìm tất cả các giao dịch theo loại giao dịch (mượn, trả, gia hạn, quá hạn)
     List<TransactionHistory> findByTransactionType(String transactionType);
 
+    // dem so sach dang o trang thai muon
     List<TransactionHistory> findByTransactionTypeAndStatus(String transactionType, boolean status) ;
 
     // Tìm tất cả các giao dịch của một cuốn sách cụ thể
@@ -30,4 +31,9 @@ public interface TransactionHistoryRepo extends MongoRepository<TransactionHisto
 
 
     List<TransactionHistory> findByPhoneNumberAndStatusAndDueDateBefore(String phoneNumber, boolean status, LocalDateTime dueDate);
+
+    long countByTransactionTypeAndStatus(String transactionType, boolean status);
+
+    List<TransactionHistory> findByMemberIdAndStatus(String memberId, boolean status);
+
 }

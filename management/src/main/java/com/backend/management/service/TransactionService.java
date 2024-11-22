@@ -349,5 +349,10 @@ public class TransactionService {
         return result;
     }
 
+    //ddem so sach dang muon
+    public long countBorrowedBooks(){
+        return transactionHistoryRepo.countByTransactionTypeAndStatus("Mượn",true);
+    }
+
 }
 
