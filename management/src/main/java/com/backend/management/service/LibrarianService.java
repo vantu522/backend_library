@@ -17,6 +17,7 @@ import org.thymeleaf.context.Context;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -33,6 +34,9 @@ public class LibrarianService {
     @Autowired
     private TemplateEngine templateEngine;
 
+    @Autowired
+    private ValidationService validationService;
+
     // Lưu trữ OTP
     private Map<String, OtpData> otpStorage = new HashMap<>();
 
@@ -48,8 +52,11 @@ public class LibrarianService {
     }
 
     public Librarian getLibrarianByUsername(String username) {
-        return librarianRepo.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException(username));
+        Optional<Librarian> librarian = librarianRepo.findByUsername(username);
+        if (!librarian.isPresent()) {
+            throw new ResourceNotFoundException("Không tìm thấy người dùng với username: " + username);
+        }
+        return librarian.get();
     }
 
     public Librarian authenticateLibrarian(String username, String password) {
@@ -67,30 +74,44 @@ public class LibrarianService {
         return librarianRepo.save(librarian);
     }
 
-    // 1. Gửi mã OTP qua email
     public void sendPasswordResetOtp(String username) throws MessagingException {
-        Librarian librarian = getLibrarianByUsername(username);
-        String otp = generateOtp();
-        // Lưu OTP vào storage
-        otpStorage.put(username, new OtpData(otp));
+        try {
+            Librarian librarian = getLibrarianByUsername(username);
+            String email = librarian.getEmail();
+            
+            // Validate email trước khi gửi
+            if (email == null || !validationService.isValidEmail(email)) {
+                throw new IllegalArgumentException("Email không hợp lệ: " + email);
+            }
 
-        Context context = new Context();
-        context.setVariable("username", username);
-        context.setVariable("otp", otp);
+            String otp = generateOtp();
+            otpStorage.put(username, new OtpData(otp));
 
-        String emailContent = templateEngine.process("email/reset", context);
-
-        // tao va gui email
-        MimeMessage mimeMessage = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-        helper.setTo(librarian.getEmail());
-        helper.setSubject("dat lai mat khau");
-        helper.setText(emailContent, true);
-
-        mailSender.send(mimeMessage);
+            //render noi dung tu template
+            Context context = new Context();
+            context.setVariable("username", username);
+            context.setVariable("otp",otp);
+            String emailContent = templateEngine.process("email/reset", context);
 
 
 
+
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setTo(email);
+            helper.setSubject("Đặt lại mật khẩu - Mã OTP");
+            helper.setText(emailContent, true);
+            mailSender.send(mimeMessage);
+
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (MessagingException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi gửi OTP: " + e.getMessage());
+        }
     }
 
     // 2. Xác thực OTP và đổi mật khẩu

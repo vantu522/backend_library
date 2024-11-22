@@ -42,12 +42,25 @@ public class LibrarianController {
 
     // gui mail
     @PostMapping("/send-otp")
-    public ResponseEntity<?> sendPasswordResetOtp(@RequestBody LoginRequest request) throws MessagingException {
-        try{
+    public ResponseEntity<?> sendPasswordResetOtp(@RequestBody LoginRequest request) {
+        try {
+            if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Username không được để trống");
+            }
+            
             librarianService.sendPasswordResetOtp(request.getUsername());
-            return ResponseEntity.ok("da gui otp thanh cong");
-        } catch(Exception e){
-            return ResponseEntity.badRequest().body("khong the gui otp:"+ e.getMessage());
+            return ResponseEntity.ok("Đã gửi OTP thành công");
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Không tìm thấy người dùng với username: " + request.getUsername());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi gửi email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi hệ thống: " + e.getMessage());
         }
     }
 
