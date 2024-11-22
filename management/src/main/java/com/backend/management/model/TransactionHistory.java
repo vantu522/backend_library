@@ -15,7 +15,7 @@ public class TransactionHistory {
     private String memberName;  // Tên người mượn
     private String bookId;
     private String title;
-    private List<String> author;
+    private String author;
     private String phoneNumber;
     private String transactionType;
     private LocalDateTime transactionDate;
@@ -71,9 +71,9 @@ public class TransactionHistory {
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
-    public List<String> getAuthor() {return author;}
+    public String getAuthor() {return author;}
 
-    public void  setAuthor(List<String> author) {
+    public void  setAuthor(String author) {
         this.author = author;
     }
     public String getTransactionType() {
