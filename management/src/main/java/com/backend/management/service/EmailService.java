@@ -13,7 +13,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
-
+import org.springframework.scheduling.annotation.Async;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -37,8 +37,9 @@ public class EmailService {
     @Autowired
     private TransactionHistoryRepo transactionHistoryRepo;
 
-    // Gửi thông báo mượn sách thành công
-    public void sendBorrowSuccessEmail(String name, String email, String title, LocalDateTime borrowDate, LocalDateTime dueDate) throws MessagingException {
+    @Async
+    public void sendBorrowSuccessEmail(String name, String email, String title,
+                                       LocalDateTime borrowDate, LocalDateTime dueDate) throws MessagingException {
         Context context = new Context();
         context.setVariable("name", name);
         context.setVariable("title", title);
@@ -49,7 +50,7 @@ public class EmailService {
         sendEmail(email, "Thông báo mượn sách thành công", emailContent);
     }
 
-    // Gửi thông báo trả sách thành công
+    @Async
     public void sendReturnSuccessEmail(String name, String email, String title, LocalDateTime returnDate) throws MessagingException {
         Context context = new Context();
         context.setVariable("name", name);
@@ -60,7 +61,7 @@ public class EmailService {
         sendEmail(email, "Thông báo trả sách thành công", emailContent);
     }
 
-    // Gửi thông báo gia hạn sách thành công
+    @Async
     public void sendRenewalSuccessEmail(String name, String email, String title, LocalDateTime newDueDate) throws MessagingException {
         Context context = new Context();
         context.setVariable("name", name);
@@ -71,7 +72,7 @@ public class EmailService {
         sendEmail(email, "Thông báo gia hạn sách thành công", emailContent);
     }
 
-    // Gửi email thông báo sắp hết hạn (1 ngày trước khi hết hạn)
+    @Async    // Gửi email thông báo sắp hết hạn (1 ngày trước khi hết hạn)
     public void sendDueDateReminderEmail(String name, String email, String title, LocalDateTime dueDate) throws MessagingException {
         // Tính toán thời gian gửi email là dueDate - 1 ngày
 
@@ -84,7 +85,7 @@ public class EmailService {
         String emailContent = templateEngine.process("email/due_date_reminder", context);
         sendEmail(email, "Thông báo sách sắp hết hạn", emailContent);
     }
-
+    @Async
     // Phương thức gửi email chung
     private void sendEmail(String email, String subject, String content) throws MessagingException {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
