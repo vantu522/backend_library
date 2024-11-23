@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.w3c.dom.html.HTMLImageElement;
 
 import java.text.Normalizer;
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -124,9 +125,7 @@ public class TransactionService {
         return "Mượn sách thành công. Hạn trả là " + dueDate;
     }
 
-
-
-
+    // tra sach
     public String returnBook(String name, String title, String phoneNumber) {
         // Tìm thành viên theo số điện thoại
         if (phoneNumber == null || phoneNumber.isEmpty()) {
@@ -182,8 +181,8 @@ public class TransactionService {
         history.setPhoneNumber(member.getPhoneNumber());
         history.setTransactionType("Trả");
         history.setTransactionDate(returnDate);
-        history.setDueDate(null); // Không cần hạn trả khi trả sách
         history.setStatus(false);
+        history.setDueDate(returnDate);
         history.setDescription("Trả sách: " + book.getTitle() + ", Ngày trả: " + returnDate);
 
         // Lưu giao dịch trả sách vào cơ sở dữ liệu
@@ -313,27 +312,42 @@ public class TransactionService {
     }
 
     public List<Map<String, String>> getAllReturnTransactions() {
-        // Lấy tất cả giao dịch "Trả"
-        List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionType("Trả");
+        try {
+            List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionType("Trả");
+            List<Map<String, String>> result = new ArrayList<>();
+            
+            for (TransactionHistory transaction : transactions) {
+                try {
+                    Map<String, String> transactionDetails = new HashMap<>();
+                    transactionDetails.put("memberId", transaction.getMemberId());
+                    transactionDetails.put("memberName", transaction.getMemberName());
+                    transactionDetails.put("bookId", transaction.getBookId());
+                    transactionDetails.put("bookTitle", transaction.getTitle());
+                    transactionDetails.put("author", transaction.getAuthor());
+                    transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
 
-        // Chuyển đổi sang định dạng mong muốn
-        List<Map<String, String>> result = new ArrayList<>();
-        for (TransactionHistory transaction : transactions) {
-            Map<String, String> transactionDetails = new HashMap<>();
-            transactionDetails.put("memberId", transaction.getMemberId());
-            transactionDetails.put("memberName", transaction.getMemberName());
-            transactionDetails.put("bookId", transaction.getBookId());
-            transactionDetails.put("bookTitle", transaction.getTitle());
-            transactionDetails.put("author", transaction.getAuthor());
-            transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
-            transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
-            transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
-            transactionDetails.put("description", transaction.getDescription());
+                    LocalDateTime transactionDate = transaction.getTransactionDate();
+                    if (transactionDate == null) {
+                        // If transactionDate is null, use dueDate (which is the return date in this case)
+                        transactionDate = transaction.getDueDate();
+                    }
+                    transactionDetails.put("transactionDate", transactionDate.toString());
 
-            result.add(transactionDetails); // Thêm Map<String, String> vào List
+                    transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
+                    transactionDetails.put("description", transaction.getDescription());
+
+                    result.add(transactionDetails);
+                } catch (Exception e) {
+                    System.err.println("Lỗi khi xử lý transaction: " + e.getMessage());
+                    // Có thể log lỗi hoặc xử lý theo ý muốn
+                    continue;
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            System.err.println("Lỗi khi lấy danh sách trả sách: " + e.getMessage());
+            return new ArrayList<>(); // Trả về list rỗng thay vì throw exception
         }
-
-        return result;
     }
 
     public List<Map<String, String>> getAllRenewTransactions() {
@@ -351,7 +365,7 @@ public class TransactionService {
             transactionDetails.put("bookTitle", transaction.getTitle());
             transactionDetails.put("author", transaction.getAuthor());
             transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
-
+            transactionDetails.put("dueDate", transaction.getDueDate().toString());
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
             transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
             transactionDetails.put("description", transaction.getDescription());
@@ -369,6 +383,49 @@ public class TransactionService {
 
     public long countReturnedBooks(){
         return transactionHistoryRepo.countByTransactionTypeAndStatus("Trả", false);
+    }
+
+    public List<Map<String, Object>> getWeeklyStats(){
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startOfWeek = now.with(DayOfWeek.MONDAY);
+        LocalDateTime endOfWeek = now.with(DayOfWeek.SUNDAY);
+
+        List<Map<String, Object>> weeklyStats = new ArrayList<>();
+
+        for(int i = 0; i< 7; i++){
+            LocalDateTime dayStart = startOfWeek.plusDays(i).withHour(0).withMinute(0).withSecond(0);
+            LocalDateTime dayEnd = dayStart.withHour(23).withMinute(59).withSecond(59);
+
+
+            long borrowCount = transactionHistoryRepo.countByTransactionTypeAndTransactionDateBetween(
+                    "Mượn", dayStart, dayEnd);
+
+            long returnCount = transactionHistoryRepo.countByTransactionTypeAndTransactionDateBetween(
+                    "Trả", dayStart, dayEnd);
+
+            Map<String, Object> dayStats = new HashMap<>();
+            dayStats.put("day", getDayName(dayStart.getDayOfWeek()));
+            dayStats.put("borrowed", borrowCount);
+            dayStats.put("returned", returnCount);
+
+            weeklyStats.add(dayStats);
+        }
+        return weeklyStats;
+
+
+    }
+
+    private String getDayName(DayOfWeek day) {
+        switch (day) {
+            case MONDAY: return "Thứ 2";
+            case TUESDAY: return "Thứ 3";
+            case WEDNESDAY: return "Thứ 4";
+            case THURSDAY: return "Thứ 5";
+            case FRIDAY: return "Thứ 6";
+            case SATURDAY: return "Thứ 7";
+            case SUNDAY: return "Chủ nhật";
+            default: return "";
+        }
     }
 
 }

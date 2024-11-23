@@ -82,8 +82,6 @@ public class MemberService {
 
         }
 
-        // Set createdDate cho member mới
-        member.setCreatedDate(LocalDateTime.now());
 
         return memberRepo.save(member);
 

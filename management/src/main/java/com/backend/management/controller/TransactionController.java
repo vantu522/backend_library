@@ -110,5 +110,12 @@ public class TransactionController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Đã xảy ra lỗi khi trả sách: " + e.getMessage());
         }
+
+    }
+
+    @GetMapping("/weekly-stats")
+    public ResponseEntity<List<Map<String, Object>>> getWeeklyStats() {
+        List<Map<String, Object>> stats = transactionService.getWeeklyStats();
+        return ResponseEntity.ok(stats);
     }
 }

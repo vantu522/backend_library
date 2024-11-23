@@ -36,4 +36,10 @@ public interface TransactionHistoryRepo extends MongoRepository<TransactionHisto
 
     List<TransactionHistory> findByMemberIdAndStatus(String memberId, boolean status);
 
+    // Thêm vào TransactionHistoryRepo
+    long countByTransactionTypeAndTransactionDateBetween(
+            String transactionType,
+            LocalDateTime startDate,
+            LocalDateTime endDate
+    );
 }
