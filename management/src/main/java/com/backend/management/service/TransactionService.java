@@ -1,5 +1,7 @@
 package com.backend.management.service;
 
+import com.backend.management.exception.BookUnavailableException;
+import com.backend.management.exception.ResourceNotFoundException;
 import com.backend.management.model.Book;
 import com.backend.management.model.Member;
 //import com.backend.management.model.Transaction;
@@ -56,13 +58,13 @@ public class TransactionService {
         Book book = bookRepo.findByTitle(title);
 
         if (book == null) {
-            return "Không tìm thấy sách với tiêu đề này";
+            throw new ResourceNotFoundException("Không tìm thấy sách với tiêu đề này");
         }
 
 
         // Kiểm tra các điều kiện mượn sách
         if (book.getQuantity() == 0) {
-            return "Sách hiện không có sẵn";
+            throw  new BookUnavailableException("Sách hiện không có sẵn");
         }
 
         if (member.getBooksBorrowed() == 5) {

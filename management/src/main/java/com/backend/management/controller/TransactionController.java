@@ -1,5 +1,6 @@
 package com.backend.management.controller;
 
+import com.backend.management.exception.BookUnavailableException;
 import com.backend.management.model.TransactionHistory;
 import com.backend.management.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +69,11 @@ public class TransactionController {
 
             // Trả kết quả lại cho client
             return ResponseEntity.ok(result);
-        } catch (Exception e) {
+        }catch (BookUnavailableException e) {
+            // Xử lý trường hợp không còn sách
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Không còn sách để mượn.");
+        }
+        catch (Exception e) {
             // Xử lý lỗi nếu có
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Đã xảy ra lỗi khi mượn sách: " + e.getMessage());
         }
