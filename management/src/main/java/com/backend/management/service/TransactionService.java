@@ -10,6 +10,7 @@ import com.backend.management.repository.TransactionHistoryRepo;
 import com.mongodb.lang.Nullable;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.html.HTMLImageElement;
 
@@ -82,10 +83,16 @@ public class TransactionService {
         }
 
         List<TransactionHistory> overdueTransactions = transactionHistoryRepo.findByPhoneNumberAndStatusAndDueDateBefore(
-                phoneNumber, true, LocalDateTime.now());
+                phoneNumber, "Đang mượn", LocalDateTime.now());
 
         if (!overdueTransactions.isEmpty()) {
             return "Không thể mượn sách mới vì có sách đã quá hạn. Vui lòng trả hết sách đã quá hạn.";
+        }
+
+        List<TransactionHistory> borrowedBooks = transactionHistoryRepo.findByMemberIdAndBookIdAndStatus(
+                member.getMemberId(), book.getBookId(), "Đang mượn");
+        if (!borrowedBooks.isEmpty()) {
+            return "Bạn đã mượn sách này trước đó. Không thể mượn cùng lúc hai quyển sách giống nhau.";
         }
 
         LocalDateTime borrowDate = LocalDateTime.now();
@@ -112,7 +119,7 @@ public class TransactionService {
         history.setTransactionType("Mượn");
         history.setTransactionDate(borrowDate);
         history.setDueDate(dueDate);
-        history.setStatus(true);
+        history.setStatus("Đang mượn");
         history.setDescription("Mượn sách: " + book.getTitle() + ", Hạn trả: " + dueDate);
 
         // Lưu giao dịch vào cơ sở dữ liệu
@@ -159,7 +166,7 @@ public class TransactionService {
 
         // Tìm các giao dịch mượn liên quan
         List<TransactionHistory> borrowTransactions = transactionHistoryRepo.findByMemberIdAndBookIdAndTransactionTypeAndStatus(
-                member.getMemberId(), book.getBookId(), "Mượn", true);
+                member.getMemberId(), book.getBookId(), "Mượn", "Đang mượn");
 
         if (borrowTransactions.isEmpty()) {
             return "Thành viên chưa mượn sách này hoặc sách đã được trả";
@@ -177,7 +184,7 @@ public class TransactionService {
 
         // Đánh dấu tất cả các giao dịch mượn liên quan thành false
         for (TransactionHistory borrowTransaction : borrowTransactions) {
-            borrowTransaction.setStatus(false);
+            borrowTransaction.setStatus("Đã trả");
             borrowTransaction.setDescription(borrowTransaction.getDescription() +
                     " (Đã trả vào ngày " + returnDate + ")");
         }
@@ -196,7 +203,7 @@ public class TransactionService {
         history.setTransactionType("Trả");
         history.setTransactionDate(returnDate);
         history.setDueDate(null); // Không cần hạn trả khi trả sách
-        history.setStatus(false);
+        history.setStatus("Đã trả");
         history.setDescription("Trả sách: " + book.getTitle() + ", Ngày trả: " + returnDate);
 
         // Lưu giao dịch trả sách vào cơ sở dữ liệu
@@ -240,7 +247,7 @@ public class TransactionService {
 
         // Kiểm tra giao dịch mượn trong bảng transactionHistory với status = true
         List<TransactionHistory> borrowTransactions = transactionHistoryRepo.findByMemberIdAndBookIdAndTransactionTypeAndStatus(
-                member.getMemberId(), book.getBookId(), "Mượn", true);
+                member.getMemberId(), book.getBookId(), "Mượn", "Đang mượn");
 
         if (borrowTransactions.isEmpty()) {
             return "Thành viên chưa mượn sách này hoặc sách đã được trả";
@@ -249,7 +256,7 @@ public class TransactionService {
         TransactionHistory borrowTransaction = borrowTransactions.get(0);
 
         List<TransactionHistory> renewTransactions = transactionHistoryRepo.findByMemberIdAndBookIdAndTransactionTypeAndStatus(
-                member.getMemberId(), book.getBookId(), "Gia hạn", true);
+                member.getMemberId(), book.getBookId(), "Gia hạn", "Đang mượn");
         int maxRenewCount = 2;
         if (renewTransactions.size() >= maxRenewCount) {
             return "Sách này đã đạt giới hạn gia hạn tối đa.";
@@ -275,7 +282,7 @@ public class TransactionService {
             renewTransaction.setPhoneNumber(member.getPhoneNumber());
             renewTransaction.setTransactionDate(now);  // Ngày gia hạn hiện tại
             renewTransaction.setDueDate(newDueDate);  // Hạn mới
-            renewTransaction.setStatus(true);
+            renewTransaction.setStatus("Đang mượn");
             renewTransaction.setDescription("Gia hạn sách: " + book.getTitle() + ", Hạn mới: " + newDueDate);
 
             // Lưu giao dịch gia hạn vào cơ sở dữ liệu
@@ -303,7 +310,7 @@ public class TransactionService {
 
     public List<Map<String, String>> getAllBorrowTransactions() {
         // Lấy tất cả các giao dịch có loại "Mượn"
-        List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionTypeAndStatus("Mượn", true);
+        List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionTypeAndStatus("Mượn", "Đang mượn");
 
         List<Map<String, String>> result = new ArrayList<>();
         for (TransactionHistory transaction : transactions) {
@@ -315,7 +322,7 @@ public class TransactionService {
             transactionDetails.put("author", transaction.getAuthor());
             transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
-            transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
+            transactionDetails.put("status", transaction.getStatus());
             transactionDetails.put("description", transaction.getDescription());
 
             result.add(transactionDetails);
@@ -339,7 +346,7 @@ public class TransactionService {
             transactionDetails.put("author", transaction.getAuthor());
             transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
-            transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
+            transactionDetails.put("status", transaction.getStatus() );
             transactionDetails.put("description", transaction.getDescription());
 
             result.add(transactionDetails); // Thêm Map<String, String> vào List
@@ -365,7 +372,7 @@ public class TransactionService {
             transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
 
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
-            transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
+            transactionDetails.put("status", transaction.getStatus());
             transactionDetails.put("description", transaction.getDescription());
 
             result.add(transactionDetails);
@@ -373,28 +380,68 @@ public class TransactionService {
 
         return result;
     }
-    public List<Map<String, Object>> getMonthlyStatistics(String transactionType) {
-        List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionType(transactionType);
+    public List<Map<String, Object>> getMonthlyStatistics() {
+        List<TransactionHistory> borrowTransactions = transactionHistoryRepo.findByTransactionType("Đang mượn");
+        List<TransactionHistory> returnTransactions = transactionHistoryRepo.findByTransactionType("Đã Trả");
 
-        int[] monthlyCounts = new int[12];
+        int[] borrowCount = new int[12];
+        int[] returnCount = new int[12];
 
-        for (TransactionHistory transaction : transactions) {
+        for (TransactionHistory transaction : borrowTransactions) {
             if (transaction.getTransactionDate() != null) {
                 int month = transaction.getTransactionDate().getMonthValue();
-                monthlyCounts[month - 1]++;
+                borrowCount[month - 1]++;
+            }
+        }
+        for (TransactionHistory transaction : returnTransactions) {
+            if (transaction.getTransactionDate() != null) {
+                int month = transaction.getTransactionDate().getMonthValue();
+                returnCount[month - 1]++;
             }
         }
 
         List<Map<String, Object>> result = new ArrayList<>();
         for (int i = 0; i < 12; i++) {
             Map<String, Object> data = new HashMap<>();
-            data.put("name", "Tháng" + (i + 1));
-            data.put("value", monthlyCounts[i]);
+            data.put("return", borrowCount[i]);
+            data.put("month", "T" + (i + 1));
+            data.put("borrow", returnCount[i]);
             result.add(data);
         }
 
         return result;
     }
+
+    @Scheduled(cron = "0 52 15 * * ?", zone = "Asia/Ho_Chi_Minh")
+    public void updateOverdueBooks() {
+        // Lấy tất cả giao dịch có trạng thái "Đang mượn"
+        List<TransactionHistory> ongoingTransactions = transactionHistoryRepo.findByStatus("Đang mượn");
+
+        // Lặp qua từng giao dịch để kiểm tra hạn trả
+        for (TransactionHistory transaction : ongoingTransactions) {
+            if (transaction.getDueDate().isBefore(LocalDateTime.now())) {
+                // Cập nhật trạng thái giao dịch thành "Quá hạn"
+                transaction.setStatus("Quá hạn");
+                transaction.setDescription("Sách mượn đã quá hạn vào ngày " + transaction.getDueDate());
+
+                // Lưu thay đổi vào cơ sở dữ liệu
+                transactionHistoryRepo.save(transaction);
+
+                // Gửi email thông báo nếu cần
+                try {
+                    emailService.sendOverdueNotificationEmail(
+                            transaction.getMemberName(),
+                            transaction.getPhoneNumber(),
+                            transaction.getTitle(),
+                            transaction.getDueDate()
+                    );
+                } catch (MessagingException e) {
+                    System.err.println("Gửi email thông báo quá hạn thất bại: " + e.getMessage());
+                }
+            }
+        }
+    }
+
 
 }
 

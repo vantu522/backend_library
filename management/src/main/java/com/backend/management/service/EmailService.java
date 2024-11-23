@@ -86,6 +86,20 @@ public class EmailService {
         sendEmail(email, "Thông báo sách sắp hết hạn", emailContent);
     }
     @Async
+    public void sendOverdueNotificationEmail(String name, String email, String title, LocalDateTime dueDate) throws MessagingException {
+        Context context = new Context();
+        context.setVariable("name", name);
+        context.setVariable("title", title);
+        context.setVariable("dueDate", dueDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+
+        String emailContent = templateEngine.process("email/overdue_notification", context);
+
+        sendEmail(email, "Thông báo sách mượn quá hạn", emailContent);
+    }
+
+
+
+    @Async
     // Phương thức gửi email chung
     private void sendEmail(String email, String subject, String content) throws MessagingException {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -96,9 +110,11 @@ public class EmailService {
         mailSender.send(mimeMessage);
     }
 
+
+
     @Scheduled(cron = "0 52 15 * * ?", zone = "Asia/Ho_Chi_Minh")
     public void sendDueDateReminderBooks() {
-        List<TransactionHistory> borrowedBooks = transactionHistoryRepo.findByTransactionTypeAndStatus("Mượn", true);
+        List<TransactionHistory> borrowedBooks = transactionHistoryRepo.findByTransactionTypeAndStatus("Mượn", "Đang mượn");
 
         for (TransactionHistory borrowedBook : borrowedBooks) {
 //            if (borrowedBook.getDueDate() != null &&
@@ -119,7 +135,9 @@ public class EmailService {
                 }
             }
         }
-    }
+
+
+}
 
 
 
