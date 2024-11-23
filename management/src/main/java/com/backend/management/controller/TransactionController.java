@@ -101,4 +101,21 @@ public class TransactionController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Đã xảy ra lỗi khi trả sách: " + e.getMessage());
         }
     }
+    @GetMapping ("/statistics")
+    public ResponseEntity<List<Map<String, Object>>> getMonthlyStatistics(
+            @RequestBody Map<String, String> requestBody
+    ) {
+        // Lấy giá trị "transactionType" từ requestBody
+        String transactionType = requestBody.get("transactionType");
+
+        if (transactionType == null || transactionType.isEmpty()) {
+            return ResponseEntity.badRequest().body(null); // Phản hồi lỗi nếu thiếu transactionType
+        }
+
+        // Gọi service để lấy thống kê
+        List<Map<String, Object>> statistics = transactionService.getMonthlyStatistics(transactionType);
+
+        return ResponseEntity.ok(statistics);
+    }
+
 }
