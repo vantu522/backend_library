@@ -1,6 +1,7 @@
 package com.backend.management.service;
 
 import com.backend.management.exception.BookUnavailableException;
+import com.backend.management.exception.InvalidRequestException;
 import com.backend.management.exception.ResourceNotFoundException;
 import com.backend.management.model.Book;
 import com.backend.management.model.Member;
@@ -68,7 +69,7 @@ public class TransactionService {
         }
 
         if (member.getBooksBorrowed() == 5) {
-            return "Không thể mượn quá năm quyển sách";
+            throw new InvalidRequestException("Không thể mượn quá năm quyển sách");
         }
 
         List<TransactionHistory> overdueTransactions = transactionHistoryRepo.findByPhoneNumberAndStatusAndDueDateBefore(
