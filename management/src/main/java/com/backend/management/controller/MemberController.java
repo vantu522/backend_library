@@ -88,4 +88,15 @@ public class MemberController {
     }
 
 
+    @GetMapping("/statistics")
+    public ResponseEntity<?> getMemberStatistics(){
+        try{
+            return ResponseEntity.ok(memberService.getMemberStatistics());
+        } catch(Exception e){
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+
 }

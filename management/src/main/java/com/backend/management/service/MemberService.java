@@ -10,13 +10,16 @@ import com.backend.management.repository.TransactionRepo;
 import com.backend.management.utils.SlugUtil;
 import jakarta.validation.constraints.Email;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +35,9 @@ public class MemberService {
 
     @Autowired
     private TransactionHistoryRepo transactionHistoryRepo;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     //lay tat ca cac member
     public List<Member> getAllMembers(){
@@ -75,6 +81,9 @@ public class MemberService {
             throw new IllegalArgumentException("email da su dung");
 
         }
+
+        // Set createdDate cho member mới
+        member.setCreatedDate(LocalDateTime.now());
 
         return memberRepo.save(member);
 
@@ -126,7 +135,6 @@ public class MemberService {
 
     // xem ban doc dang muon hoac gia han nhung quyen sach nao
     public Map<String, Object> getMemberBorrowedAndRenewedBooks(String memberId) {
-        // Tìm thành viên theo ID
         Member member = memberRepo.findByMemberId(memberId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thành viên với ID: " + memberId));
 
@@ -155,6 +163,39 @@ public class MemberService {
         result.put("phoneNumber", member.getPhoneNumber());
         result.put("borrowedAndRenewedBooks", borrowedBooks);
 
+        return result;
+    }
+
+    //
+    public List<Map<String , Object>> getMemberStatistics(){
+        LocalDateTime now = LocalDateTime.now();
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (int i = 0; i < 12; i++) {
+            YearMonth currentMonth = YearMonth.from(now.minusMonths(i));
+            LocalDateTime startOfMonth = currentMonth.atDay(1).atStartOfDay();
+            LocalDateTime endOfMonth = currentMonth.atEndOfMonth().atTime(23, 59, 59);
+
+            // Đếm số member mới trong tháng
+            long newMembers = mongoTemplate.count(
+                    new org.springframework.data.mongodb.core.query.Query(
+                            Criteria.where("createdDate").gte(startOfMonth).lt(endOfMonth.plusDays(1))
+                    ),
+                    Member.class
+            );
+
+            // Đếm tổng số member (không cần điều kiện createdDate)
+            long activeUsers = memberRepo.count();
+
+            Map<String, Object> monthStat = new HashMap<>();
+            monthStat.put("name", "T" + currentMonth.getMonthValue());
+            monthStat.put("new", newMembers);
+            monthStat.put("active", activeUsers);
+
+            result.add(monthStat);
+        }
+        
+        Collections.reverse(result);
         return result;
     }
 
