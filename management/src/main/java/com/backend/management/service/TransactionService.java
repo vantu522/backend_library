@@ -13,6 +13,7 @@ import com.backend.management.repository.TransactionHistoryRepo;
 import com.mongodb.lang.Nullable;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.html.HTMLImageElement;
 
@@ -411,6 +412,7 @@ public class TransactionService {
         return transactionHistoryRepo.countByTransactionTypeAndStatus("Trả", false);
     }
 
+
     public List<Map<String, Object>> getWeeklyStats(){
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startOfWeek = now.with(DayOfWeek.MONDAY);
@@ -453,6 +455,69 @@ public class TransactionService {
             default: return "";
         }
     }
+
+    public List<Map<String, Object>> getMonthlyStatistics() {
+        List<TransactionHistory> borrowTransactions = transactionHistoryRepo.findByTransactionType("Đang mượn");
+        List<TransactionHistory> returnTransactions = transactionHistoryRepo.findByTransactionType("Đã Trả");
+
+        int[] borrowCount = new int[12];
+        int[] returnCount = new int[12];
+
+        for (TransactionHistory transaction : borrowTransactions) {
+            if (transaction.getTransactionDate() != null) {
+                int month = transaction.getTransactionDate().getMonthValue();
+                borrowCount[month - 1]++;
+            }
+        }
+        for (TransactionHistory transaction : returnTransactions) {
+            if (transaction.getTransactionDate() != null) {
+                int month = transaction.getTransactionDate().getMonthValue();
+                returnCount[month - 1]++;
+            }
+        }
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("return", borrowCount[i]);
+            data.put("month", "T" + (i + 1));
+            data.put("borrow", returnCount[i]);
+            result.add(data);
+        }
+
+        return result;
+    }
+
+    @Scheduled(cron = "0 52 15 * * ?", zone = "Asia/Ho_Chi_Minh")
+    public void updateOverdueBooks() {
+        // Lấy tất cả giao dịch có trạng thái "Đang mượn"
+        List<TransactionHistory> ongoingTransactions = transactionHistoryRepo.findByStatus("Đang mượn");
+
+        // Lặp qua từng giao dịch để kiểm tra hạn trả
+        for (TransactionHistory transaction : ongoingTransactions) {
+            if (transaction.getDueDate().isBefore(LocalDateTime.now())) {
+                // Cập nhật trạng thái giao dịch thành "Quá hạn"
+                transaction.setStatus("Quá hạn");
+                transaction.setDescription("Sách mượn đã quá hạn vào ngày " + transaction.getDueDate());
+
+                // Lưu thay đổi vào cơ sở dữ liệu
+                transactionHistoryRepo.save(transaction);
+
+                // Gửi email thông báo nếu cần
+                try {
+                    emailService.sendOverdueNotificationEmail(
+                            transaction.getMemberName(),
+                            transaction.getPhoneNumber(),
+                            transaction.getTitle(),
+                            transaction.getDueDate()
+                    );
+                } catch (MessagingException e) {
+                    System.err.println("Gửi email thông báo quá hạn thất bại: " + e.getMessage());
+                }
+            }
+        }
+    }
+
 
 }
 

@@ -42,4 +42,6 @@ public interface TransactionHistoryRepo extends MongoRepository<TransactionHisto
             LocalDateTime startDate,
             LocalDateTime endDate
     );
+
+    List<TransactionHistory> findByStatus(String status);
 }
