@@ -302,6 +302,7 @@ public class TransactionService {
             transactionDetails.put("author", transaction.getAuthor());
             transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
+            transactionDetails.put("dueDate", transaction.getDueDate().toString());
             transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
             transactionDetails.put("description", transaction.getDescription());
 
