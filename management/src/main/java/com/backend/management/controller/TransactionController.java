@@ -1,5 +1,7 @@
 package com.backend.management.controller;
 
+import com.backend.management.exception.BookUnavailableException;
+import com.backend.management.exception.InvalidRequestException;
 import com.backend.management.model.TransactionHistory;
 import com.backend.management.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +20,21 @@ public class TransactionController {
     @Autowired
     private TransactionService transactionService;
 
-    @GetMapping("/borrowed")
 
+    // dem so sach dang muon
+    @GetMapping("/count-borrowed")
+    public ResponseEntity<Long> getBorrowedBooksCount() {
+        long count = transactionService.countBorrowedBooks();
+        return ResponseEntity.ok(count);
+    }
+
+   @GetMapping("/count-returned")
+   public ResponseEntity<Long> getReturnedBooksCount(){
+        long count = transactionService.countReturnedBooks();
+        return ResponseEntity.ok(count);
+   }
+
+    @GetMapping("/borrowed")
     public ResponseEntity<List<Map<String, String>>> getBookBorowed() {
         List<Map<String, String>> transactions = transactionService.getAllBorrowTransactions();
         return ResponseEntity.ok(transactions);
@@ -36,9 +51,6 @@ public class TransactionController {
         List<Map<String, String>> transactions = transactionService.getAllRenewTransactions();
         return ResponseEntity.ok(transactions);
     }
-
-
-
 
 
     @PostMapping("/borrow")
@@ -58,7 +70,14 @@ public class TransactionController {
 
             // Trả kết quả lại cho client
             return ResponseEntity.ok(result);
-        } catch (Exception e) {
+        }catch (InvalidRequestException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        catch (BookUnavailableException e) {
+            // Xử lý trường hợp không còn sách
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Không còn sách để mượn.");
+        }
+        catch (Exception e) {
             // Xử lý lỗi nếu có
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Đã xảy ra lỗi khi mượn sách: " + e.getMessage());
         }
@@ -100,6 +119,13 @@ public class TransactionController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Đã xảy ra lỗi khi trả sách: " + e.getMessage());
         }
+
+    }
+
+    @GetMapping("/weekly-stats")
+    public ResponseEntity<List<Map<String, Object>>> getWeeklyStats() {
+        List<Map<String, Object>> stats = transactionService.getWeeklyStats();
+        return ResponseEntity.ok(stats);
     }
     @GetMapping ("/statistics")
     public ResponseEntity<List<Map<String, Object>>> getMonthlyStatistics() {

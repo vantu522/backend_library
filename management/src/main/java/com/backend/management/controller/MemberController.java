@@ -2,18 +2,24 @@ package com.backend.management.controller;
 
 import com.backend.management.model.Member;
 import com.backend.management.service.MemberService;
+import com.backend.management.service.ValidationService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/members")
 public class MemberController {
     @Autowired
     private MemberService memberService;
+
+    @Autowired
+    private ValidationService validationService;
 
     // lay tat ca thanh vien
     @GetMapping
@@ -29,12 +35,31 @@ public class MemberController {
         return memberService.getMemberByNameAndPhoneNumber(name,phoneNumber);
     }
 
-    //them thanh vien
-    @PostMapping
-    public ResponseEntity<Member> addMember(@RequestBody Member member){
-      Member savedMember = memberService.addMember(member);
-      return new ResponseEntity<>(savedMember, HttpStatus.CREATED);
+
+    @PostMapping("/register")
+    public ResponseEntity<?> registerMember(@Valid @RequestBody Member member) {
+        try {
+            String emailType = validationService.getEmailType(member.getEmail());
+
+            if (!"PTIT Student Email".equals(emailType) && !"General Email".equals(emailType)) {
+                return ResponseEntity.badRequest().body("Email không hợp lệ");
+            }
+
+            Member savedMember = memberService.createMember(member);
+            return ResponseEntity.ok(savedMember);
+        } catch (Exception e) {
+            // Log lỗi nếu cần
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Có lỗi xảy ra: " + e.getMessage());
+        }
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Lỗi server: " + ex.getMessage());
+    }
+
 
     // lay thanh vien theo id va sua
     @PutMapping("/update/{memberId}")
@@ -50,6 +75,28 @@ public class MemberController {
         memberService.deleteMemberById(memberId);
     }
 
+    @GetMapping("/count")
+    public ResponseEntity<Long > getMemberCount(){
+        long countMember = memberService.countAllMembers();
+        return ResponseEntity.ok(countMember);
+    }
+
+    @GetMapping("/{memberId}/borrowed-renewed-books")
+    public ResponseEntity<Map<String, Object>> getBorrowedAndRenewedBooks(@PathVariable String memberId) {
+        Map<String, Object> response = memberService.getMemberBorrowedAndRenewedBooks(memberId);
+        return ResponseEntity.ok(response);
+    }
+
+
+    @GetMapping("/statistics")
+    public ResponseEntity<?> getMemberStatistics(){
+        try{
+            return ResponseEntity.ok(memberService.getMemberStatistics());
+        } catch(Exception e){
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
 
 
 }

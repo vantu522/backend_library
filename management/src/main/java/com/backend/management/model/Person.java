@@ -1,8 +1,14 @@
 package com.backend.management.model;
 
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
 public class Person {
     private String name;
+
+    @Email(message = "email khong dung dinh dang")
+    @NotBlank(message = "email khong duoc de trong")
     private String email;
     private String phoneNumber;
     private String address;

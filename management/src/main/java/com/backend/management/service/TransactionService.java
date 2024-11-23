@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.w3c.dom.html.HTMLImageElement;
 
 import java.text.Normalizer;
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -441,7 +442,46 @@ public class TransactionService {
             }
         }
     }
+    public List<Map<String, Object>> getWeeklyStats(){
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startOfWeek = now.with(DayOfWeek.MONDAY);
+        LocalDateTime endOfWeek = now.with(DayOfWeek.SUNDAY);
+
+        List<Map<String, Object>> weeklyStats = new ArrayList<>();
+
+        for(int i = 0; i< 7; i++){
+            LocalDateTime dayStart = startOfWeek.plusDays(i).withHour(0).withMinute(0).withSecond(0);
+            LocalDateTime dayEnd = dayStart.withHour(23).withMinute(59).withSecond(59);
 
 
+            long borrowCount = transactionHistoryRepo.countByTransactionTypeAndTransactionDateBetween(
+                    "Mượn", dayStart, dayEnd);
+
+            long returnCount = transactionHistoryRepo.countByTransactionTypeAndTransactionDateBetween(
+                    "Trả", dayStart, dayEnd);
+
+            Map<String, Object> dayStats = new HashMap<>();
+            dayStats.put("day", getDayName(dayStart.getDayOfWeek()));
+            dayStats.put("borrowed", borrowCount);
+            dayStats.put("returned", returnCount);
+
+            weeklyStats.add(dayStats);
+        }
+        return weeklyStats;
+
+
+    }
+    private String getDayName(DayOfWeek day) {
+        switch (day) {
+            case MONDAY: return "Thứ 2";
+            case TUESDAY: return "Thứ 3";
+            case WEDNESDAY: return "Thứ 4";
+            case THURSDAY: return "Thứ 5";
+            case FRIDAY: return "Thứ 6";
+            case SATURDAY: return "Thứ 7";
+            case SUNDAY: return "Chủ nhật";
+            default: return "";
+        }
+    }
 }
 

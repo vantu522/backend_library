@@ -8,6 +8,9 @@ import com.backend.management.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,8 +41,12 @@ public class BookController {
     }
 
 
-
-
+    @GetMapping("/categories/{bigCategoryName}/{subCategoryName}/books")
+    public ResponseEntity<List<Book>> getBooksBySubCategory(@PathVariable String subCategoryName,
+                                                            @PathVariable String bigCategoryName){
+        List<Book> books = bookService.getBooksBySubCategory(subCategoryName, bigCategoryName);
+        return ResponseEntity.ok(books);
+    }
 
 
 
@@ -109,8 +116,47 @@ public class BookController {
     public List<Book> searchBooks(@RequestParam(required = false) String title,
                                   @RequestParam(required = false) String author)
     {
-        return bookService.searchBooks(title,author); // Gọi phương thức trong BookService
+        return bookService.searchBooks(title,author);
     }
+
+    @GetMapping("/suggest")
+    public ResponseEntity<List<Book>> suggestBooks(
+            @RequestParam String query
+    ) {
+        return ResponseEntity.ok(bookService.suggestBooks(query));
+    }
+    // sua danh muc lon
+    @PutMapping("/update-big-category")
+    public ResponseEntity<String> updateBigCategoryName(
+            @RequestParam String oldName,
+            @RequestParam String newName){
+
+        bookService.updateBigCategoryName(oldName,newName);
+        return ResponseEntity.ok("success");
+    }
+
+    //xoa danh muc lon
+    @DeleteMapping("delete-big-category")
+    public ResponseEntity<String> deleteBigCategory(@RequestParam  String bigCategoryName){
+        bookService.deleteBigCategoryName(bigCategoryName);
+        return ResponseEntity.ok("delete success");
+    }
+
+
+
+    @PutMapping("/update-small-category")
+    public ResponseEntity<String> updateSmallCategory(
+            @RequestParam String bigCategoryName,
+            @RequestParam String oldSmallCategoryName,
+            @RequestParam String newSmallCategoryName) {
+
+        bookService.updateSmallCategory(bigCategoryName, oldSmallCategoryName, newSmallCategoryName);
+        return ResponseEntity.ok("Small category updated successfully.");
+    }
+
+
+
+
 
 
 

@@ -34,4 +34,12 @@ public interface TransactionHistoryRepo extends MongoRepository<TransactionHisto
     List<TransactionHistory> findByStatus(String status);
 
     List<TransactionHistory> findByMemberIdAndBookIdAndStatus(String memberId, String bookId, String status);
+
+    List<TransactionHistory> findByMemberIdAndStatus(String memberId,  String status);
+    long countByTransactionTypeAndStatus(String transactionType, boolean status);
+    long countByTransactionTypeAndTransactionDateBetween(
+            String transactionType,
+            LocalDateTime startDate,
+            LocalDateTime endDate
+    );
 }

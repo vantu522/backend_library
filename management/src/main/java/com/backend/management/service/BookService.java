@@ -5,14 +5,21 @@ import com.backend.management.model.Book;
 import com.backend.management.model.CategoryCount;
 import com.backend.management.model.PaginatedResponse;
 import com.backend.management.repository.BookRepo;
+import com.backend.management.utils.SlugUtil;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.UpdateOptions;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.*;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.mongodb.core.query.Query;
+
+
+import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +42,8 @@ public class BookService {
         Pageable pageable = PageRequest.of(page, size);
         return bookRepo.findAll(pageable);
     }
+
+
 
     // lay sach theo id
     public Optional<Book> getBookByBookId(String bookId) {
@@ -88,21 +97,6 @@ public class BookService {
     }
 
 
-    // cau hinh slug
-    private String toSlug(String input) {
-        if (input == null)
-            return "";
-
-        return Normalizer.normalize(input, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "")
-                .toLowerCase()
-                .replaceAll("đ", "d")
-                .replaceAll("/", " ")
-                .replaceAll("[^a-z0-9\\s-]", "")
-                .trim()
-                .replaceAll("\\s+", "-");
-    }
-
     // kiem tra sach co san hay hoc
     public boolean isBookAvailable(String bookId) {
         Optional<Book> book = bookRepo.findByBookId(bookId);
@@ -131,25 +125,79 @@ public class BookService {
         return categoryCount;
     }
 
-    // lay sach theo ten hoac tac gia
     public List<Book> searchBooks(String title, String author) {
-        String titleSlug = title != null ? toSlug(title) : null;
-        String authorSlug = author != null ? toSlug(author) : null;
-        if (titleSlug != null && authorSlug != null) {
-            return bookRepo.findAll().stream()
-                    .filter(book -> toSlug(book.getTitle()).equals(titleSlug)
-                            && book.getAuthor().stream().anyMatch(a -> toSlug(a).equals(authorSlug)))
-                    .collect(Collectors.toList());
-        } else if (author != null) {
-            return bookRepo.findAll().stream()
-                    .filter(book -> book.getAuthor().stream().anyMatch(a -> toSlug(a).equals(authorSlug)))
-                    .collect(Collectors.toList());
-        } else if (title != null) {
-            return bookRepo.findAll().stream()
-                    .filter(book -> toSlug(book.getTitle()).equals(titleSlug))
-                    .collect((Collectors.toList()));
+        Criteria criteria = new Criteria();
+
+        if (title != null) {
+            criteria.and("title").regex(".*" + title + ".*", "i");
         }
-        return bookRepo.findAll();
+
+        if (author != null) {
+            criteria.and("author").regex(".*" + author + ".*", "i");
+        }
+
+        Query query = new Query(criteria);
+        return mongoTemplate.find(query, Book.class);
+    }
+
+
+    public List<Book> suggestBooks(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Criteria criteria = new Criteria().orOperator(
+                Criteria.where("title").regex("^" + query, "i"),
+                Criteria.where("author").regex("^" + query, "i")
+        );
+
+        Query querys = new Query(criteria).limit(10);
+        return mongoTemplate.find(querys, Book.class);
+    }
+
+    public List<Book> getBooksBySubCategory(String subCategoryName, String bigCategoryName){
+        String subSlug = SlugUtil.toSlug(subCategoryName);
+        String bigSlug = SlugUtil.toSlug(bigCategoryName);
+        return bookRepo.findAll().stream()
+                .filter(book -> book.getBigCategory().stream()
+                        .anyMatch(bigCategory -> bigCategory.getSmallCategory().stream()
+                                .anyMatch(smallCategoty -> SlugUtil.toSlug(smallCategoty).equals(subSlug))))
+                .collect(Collectors.toList());
+    }
+
+    public void updateBigCategoryName(String oldName, String newName){
+
+        Query query = new Query(Criteria.where("bigCategory.name").is(oldName));
+
+        Update update = new Update().set("bigCategory.$.name", newName);
+
+        // Thực hiện cập nhật trên tất cả sách phù hợp
+        mongoTemplate.updateMulti(query, update, Book.class);
+    }
+
+    // xoa ten the loai lon
+    public void deleteBigCategoryName(String bigCategoryName){
+        Query query = new Query(Criteria.where("bigCategory.name").is(bigCategoryName));
+        mongoTemplate.remove(query,Book.class);
+    }
+
+    public void updateSmallCategory(String bigCategoryName, String oldSmallCategoryName, String newSmallCategoryName) {
+        // Tạo truy vấn tìm các document phù hợp
+        Query query = new Query(Criteria.where("bigCategory")
+                .elemMatch(Criteria.where("name").is(bigCategoryName)
+                        .and("smallCategory").is(oldSmallCategoryName)));
+
+        // Tạo update để thay đổi giá trị
+        Update update = new Update()
+                .set("bigCategory.$[elem].smallCategory.$[subelem]", newSmallCategoryName);
+
+        // Thực hiện update nhiều document với collection và options cụ thể
+        mongoTemplate.updateMulti(
+                query,
+                update,
+                Book.class,
+                mongoTemplate.getCollectionName(Book.class)
+        );
     }
 
 }

@@ -5,20 +5,21 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Getter
 @Document(collection = "members")
 public class Member extends Person {
     @Id
     private String memberId;
-    private List<String> transactions;
     private int booksBorrowed;
+    private LocalDateTime createdDate;
 
-    public Member(String name, String email, String phoneNumber, String address, String memberId, List<String> transactions, int booksBorrowed) {
+    public Member(String name, String email, String phoneNumber, String address, String memberId,  int booksBorrowed, LocalDateTime createdDate) {
         super(name, email, phoneNumber, address);
         this.memberId = memberId;
-        this.transactions = transactions;
         this.booksBorrowed = booksBorrowed;
+        this.createdDate=createdDate;
     }
 
     public String getMemberId() {
@@ -29,12 +30,13 @@ public class Member extends Person {
         this.memberId = memberId;
     }
 
-    public List<String> getTransactions() {
-        return transactions;
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
     }
 
-    public void setTransactions(List<String> transactions) {
-        this.transactions = transactions;
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
     }
 
     public int getBooksBorrowed() {
