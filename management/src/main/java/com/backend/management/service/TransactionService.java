@@ -375,6 +375,7 @@ public class TransactionService {
 
         return result;
     }
+
     public List<Map<String, Object>> getMonthlyStatistics(String transactionType) {
         List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionType(transactionType);
 
@@ -390,7 +391,7 @@ public class TransactionService {
         List<Map<String, Object>> result = new ArrayList<>();
         for (int i = 0; i < 12; i++) {
             Map<String, Object> data = new HashMap<>();
-            data.put("name", "Tháng" + (i + 1));
+            data.put("name", "T" + (i + 1));
             data.put("value", monthlyCounts[i]);
             result.add(data);
         }
