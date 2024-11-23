@@ -115,7 +115,6 @@ public class EmailService {
                         e.printStackTrace();
                     }
                 } else {
-                    // Log nếu thành viên không có email
                     System.err.println("Thành viên không có email hoặc email rỗng: " + borrowedBook.getMemberName());
                 }
             }

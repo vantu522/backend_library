@@ -1,5 +1,7 @@
 package com.backend.management.model;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -9,13 +11,22 @@ import java.util.List;
 @Document(collection = "transactionHistory")
 public class TransactionHistory {
 
+    // Getters và Setters
+    @Getter
     @Id
     private String id;  // ID duy nhất cho mỗi giao dịch
+    @Getter
     private String memberId;
+    @Getter
     private String memberName;  // Tên người mượn
+    @Getter
     private String bookId;
+    @Setter
+    @Getter
     private String title;
     private String author;
+    @Setter
+    @Getter
     private String phoneNumber;
     private String transactionType;
     private LocalDateTime transactionDate;
@@ -23,54 +34,22 @@ public class TransactionHistory {
     private Boolean  status; // True là vẫn đang mượn, False là đã trả
     private String description;
 
-    // Getters và Setters
-    public String getId() {
-        return id;
-    }
-
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getMemberId() {
-        return memberId;
     }
 
     public void setMemberId(String memberId) {
         this.memberId = memberId;
     }
 
-    public String getMemberName() {
-        return memberName;
-    }
-
     public void setMemberName(String memberName) {
         this.memberName = memberName;
-    }
-
-    public String getBookId() {
-        return bookId;
     }
 
     public void setBookId(String bookId) {
         this.bookId = bookId;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
     public String getAuthor() {return author;}
 
     public void  setAuthor(String author) {
