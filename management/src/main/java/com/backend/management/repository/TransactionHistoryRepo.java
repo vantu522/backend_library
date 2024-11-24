@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TransactionHistoryRepo extends MongoRepository<TransactionHistory, String> {
-    Member findByPhoneNumber(String phoneNumber);
     // Tìm tất cả các giao dịch của một thành viên cụ thể
     List<TransactionHistory> findByMemberId(String memberId);
 
     // Tìm tất cả các giao dịch theo loại giao dịch (mượn, trả, gia hạn, quá hạn)
     List<TransactionHistory> findByTransactionType(String transactionType);
 
+    // tim cac giao dic
     List<TransactionHistory> findByTransactionTypeAndStatus(String transactionType, String status) ;
 
     // Tìm tất cả các giao dịch của một cuốn sách cụ thể
@@ -36,7 +36,7 @@ public interface TransactionHistoryRepo extends MongoRepository<TransactionHisto
     List<TransactionHistory> findByMemberIdAndBookIdAndStatus(String memberId, String bookId, String status);
 
     List<TransactionHistory> findByMemberIdAndStatus(String memberId,  String status);
-    long countByTransactionTypeAndStatus(String transactionType, boolean status);
+    long countByTransactionTypeAndStatus(String transactionType, String status);
     long countByTransactionTypeAndTransactionDateBetween(
             String transactionType,
             LocalDateTime startDate,

@@ -1,5 +1,7 @@
 package com.backend.management.service;
 
+import com.backend.management.exception.BookUnavailableException;
+import com.backend.management.exception.InvalidRequestException;
 import com.backend.management.model.Book;
 import com.backend.management.model.Member;
 //import com.backend.management.model.Transaction;
@@ -61,12 +63,14 @@ public class TransactionService {
 
 
         // Kiểm tra các điều kiện mượn sách
+
+        // Kiểm tra các điều kiện mượn sách
         if (book.getQuantity() == 0) {
-            return "Sách hiện không có sẵn";
+            throw  new BookUnavailableException("Sách hiện không có sẵn");
         }
 
         if (member.getBooksBorrowed() == 5) {
-            return "Không thể mượn quá năm quyển sách";
+            throw new InvalidRequestException("Bạn không thể mượn quá năm quyển sách");
         }
 
         List<TransactionHistory> overdueTransactions = transactionHistoryRepo.findByPhoneNumberAndStatusAndDueDateBefore(
@@ -145,6 +149,10 @@ public class TransactionService {
             return "Không tìm thấy thành viên với số điện thoại này";
         }
 
+        if (!member.getName().equals(name)) {
+            return "Người dùng không đăng ký sử dụng số điện thoại này";
+        }
+
         // Tìm sách theo tiêu đề
         Book book = bookRepo.findByTitle(title);
         if (book == null) {
@@ -169,7 +177,7 @@ public class TransactionService {
             book.setAvailability(true);
         }
 
-        // Đánh dấu tất cả các giao dịch mượn liên quan thành false
+        // Đánh dấu tất cả các giao dịch mượn liên quan thành "Đã trả"
         for (TransactionHistory borrowTransaction : borrowTransactions) {
             borrowTransaction.setStatus("Đã trả");
             borrowTransaction.setDescription(borrowTransaction.getDescription() +
@@ -189,7 +197,7 @@ public class TransactionService {
         history.setPhoneNumber(member.getPhoneNumber());
         history.setTransactionType("Trả");
         history.setTransactionDate(returnDate);
-        history.setDueDate(null); // Không cần hạn trả khi trả sách
+        history.setDueDate(returnDate);
         history.setStatus("Đã trả");
         history.setDescription("Trả sách: " + book.getTitle() + ", Ngày trả: " + returnDate);
 
@@ -334,10 +342,12 @@ public class TransactionService {
             transactionDetails.put("author", transaction.getAuthor());
             transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
-            transactionDetails.put("status", transaction.getStatus() );
+            transactionDetails.put("dueDate", transaction.getDueDate() != null ?
+                transaction.getDueDate().toString() : transaction.getTransactionDate().toString());
+            transactionDetails.put("status", transaction.getStatus());
             transactionDetails.put("description", transaction.getDescription());
 
-            result.add(transactionDetails); // Thêm Map<String, String> vào List
+            result.add(transactionDetails);
         }
 
         return result;
@@ -368,19 +378,18 @@ public class TransactionService {
 
         return result;
     }
-
     //ddem so sach dang muon
     public long countBorrowedBooks(){
-        return transactionHistoryRepo.countByTransactionTypeAndStatus("Mượn",true);
+        return transactionHistoryRepo.countByTransactionTypeAndStatus("Mượn", "Đang mượn");
     }
-
     public long countReturnedBooks(){
-        return transactionHistoryRepo.countByTransactionTypeAndStatus("Trả", false);
+        return transactionHistoryRepo.countByTransactionTypeAndStatus("Trả", "Đã trả");
     }
 
     public List<Map<String, Object>> getMonthlyStatistics() {
-        List<TransactionHistory> borrowTransactions = transactionHistoryRepo.findByTransactionType("Đang mượn");
-        List<TransactionHistory> returnTransactions = transactionHistoryRepo.findByTransactionType("Đã Trả");
+        // Sửa lại TransactionType để khớp với giá trị được lưu trong DB
+        List<TransactionHistory> borrowTransactions = transactionHistoryRepo.findByTransactionType("Mượn");
+        List<TransactionHistory> returnTransactions = transactionHistoryRepo.findByTransactionType("Trả");
 
         int[] borrowCount = new int[12];
         int[] returnCount = new int[12];
@@ -401,9 +410,9 @@ public class TransactionService {
         List<Map<String, Object>> result = new ArrayList<>();
         for (int i = 0; i < 12; i++) {
             Map<String, Object> data = new HashMap<>();
-            data.put("return", borrowCount[i]);
+            data.put("borrow", borrowCount[i]);  // Sửa lại key cho đúng
             data.put("month", "T" + (i + 1));
-            data.put("borrow", returnCount[i]);
+            data.put("return", returnCount[i]);  // Sửa lại key cho đúng
             result.add(data);
         }
 
