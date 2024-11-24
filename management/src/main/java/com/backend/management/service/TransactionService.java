@@ -9,14 +9,11 @@ import com.backend.management.model.TransactionHistory;
 import com.backend.management.repository.BookRepo;
 import com.backend.management.repository.MemberRepo;
 import com.backend.management.repository.TransactionHistoryRepo;
-import com.mongodb.lang.Nullable;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.html.HTMLImageElement;
 
-import java.text.Normalizer;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -62,7 +59,6 @@ public class TransactionService {
         }
 
 
-        // Kiểm tra các điều kiện mượn sách
 
         // Kiểm tra các điều kiện mượn sách
         if (book.getQuantity() == 0) {

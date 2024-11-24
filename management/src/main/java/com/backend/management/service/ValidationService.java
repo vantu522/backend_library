@@ -15,8 +15,6 @@ public class ValidationService {
                 Pattern.matches(EMAIL_REGEX, email) &&
                 email.length() <= 255;
     }
-
-
     // phan loai email
     public String getEmailType(String email){
         if(email ==null){

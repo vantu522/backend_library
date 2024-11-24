@@ -155,16 +155,35 @@ public class BookService {
         return mongoTemplate.find(querys, Book.class);
     }
 
-    public List<Book> getBooksBySubCategory(String subCategoryName, String bigCategoryName){
+    public List<Book> getBooksBySubCategory(String subCategoryName, String bigCategoryName) {
         String subSlug = SlugUtil.toSlug(subCategoryName);
         String bigSlug = SlugUtil.toSlug(bigCategoryName);
+
         return bookRepo.findAll().stream()
                 .filter(book -> book.getBigCategory().stream()
-                        .anyMatch(bigCategory -> bigCategory.getSmallCategory().stream()
-                                .anyMatch(smallCategoty -> SlugUtil.toSlug(smallCategoty).equals(subSlug))))
+                        .anyMatch(bigCategory -> {
+                            String currentBigSlug = SlugUtil.toSlug(bigCategory.getName());
+                            if (!currentBigSlug.equals(bigSlug)) {
+                                return false;
+                            }
+
+                            return bigCategory.getSmallCategory().stream()
+                                    .anyMatch(smallCategory -> {
+                                        String[] subCategories = smallCategory.split("/");
+
+                                        // Chuyển từng phần tử thành slug và so sánh
+                                        for (String subCategory : subCategories) {
+                                            String currentSubSlug = SlugUtil.toSlug(subCategory.trim());
+                                            // So sánh một phần của slug
+                                            if (subSlug.contains(currentSubSlug) || currentSubSlug.contains(subSlug)) {
+                                                return true;
+                                            }
+                                        }
+                                        return false;
+                                    });
+                        }))
                 .collect(Collectors.toList());
     }
-
     public void updateBigCategoryName(String oldName, String newName){
 
         Query query = new Query(Criteria.where("bigCategory.name").is(oldName));

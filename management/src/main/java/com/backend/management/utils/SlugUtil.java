@@ -3,7 +3,6 @@ package com.backend.management.utils;
 import java.text.Normalizer;
 
 public class SlugUtil {
-
     private SlugUtil() {
     }
 
@@ -16,7 +15,6 @@ public class SlugUtil {
                 .replaceAll("\\p{M}", "") // Xóa dấu
                 .toLowerCase()
                 .replaceAll("đ", "d")
-                .replaceAll("/", "") // Loại bỏ dấu "/"
                 .replaceAll("[^a-z0-9\\s-]", "") // Chỉ giữ lại ký tự chữ, số, khoảng trắng và dấu "-"
                 .trim()
                 .replaceAll("\\s+", "-"); // Thay khoảng trắng bằng dấu "-"
