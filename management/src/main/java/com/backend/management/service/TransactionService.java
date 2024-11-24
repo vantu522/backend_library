@@ -1,8 +1,5 @@
 package com.backend.management.service;
 
-import com.backend.management.exception.BookUnavailableException;
-import com.backend.management.exception.InvalidRequestException;
-import com.backend.management.exception.ResourceNotFoundException;
 import com.backend.management.model.Book;
 import com.backend.management.model.Member;
 //import com.backend.management.model.Transaction;
@@ -13,6 +10,7 @@ import com.backend.management.repository.TransactionHistoryRepo;
 import com.mongodb.lang.Nullable;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.html.HTMLImageElement;
 
@@ -39,7 +37,6 @@ public class TransactionService {
     //  private Transaction transaction;
     private Member member;
 
-
     // Phương thức mượn sách
     public String borrowBook(String name, String title, String phoneNumber) {
         Member member = null;
@@ -59,24 +56,30 @@ public class TransactionService {
         Book book = bookRepo.findByTitle(title);
 
         if (book == null) {
-            throw new ResourceNotFoundException("Không tìm thấy sách với tiêu đề này");
+            return "Không tìm thấy sách với tiêu đề này";
         }
 
 
         // Kiểm tra các điều kiện mượn sách
         if (book.getQuantity() == 0) {
-            throw  new BookUnavailableException("Sách hiện không có sẵn");
+            return "Sách hiện không có sẵn";
         }
 
         if (member.getBooksBorrowed() == 5) {
-            throw new InvalidRequestException("Không thể mượn quá năm quyển sách");
+            return "Không thể mượn quá năm quyển sách";
         }
 
         List<TransactionHistory> overdueTransactions = transactionHistoryRepo.findByPhoneNumberAndStatusAndDueDateBefore(
-                phoneNumber, true, LocalDateTime.now());
+                phoneNumber, "Đang mượn", LocalDateTime.now());
 
         if (!overdueTransactions.isEmpty()) {
             return "Không thể mượn sách mới vì có sách đã quá hạn. Vui lòng trả hết sách đã quá hạn.";
+        }
+
+        List<TransactionHistory> borrowedBooks = transactionHistoryRepo.findByMemberIdAndBookIdAndStatus(
+                member.getMemberId(), book.getBookId(), "Đang mượn");
+        if (!borrowedBooks.isEmpty()) {
+            return "Bạn đã mượn sách này trước đó. Không thể mượn cùng lúc hai quyển sách giống nhau.";
         }
 
         LocalDateTime borrowDate = LocalDateTime.now();
@@ -103,7 +106,7 @@ public class TransactionService {
         history.setTransactionType("Mượn");
         history.setTransactionDate(borrowDate);
         history.setDueDate(dueDate);
-        history.setStatus(true);
+        history.setStatus("Đang mượn");
         history.setDescription("Mượn sách: " + book.getTitle() + ", Hạn trả: " + dueDate);
 
         // Lưu giao dịch vào cơ sở dữ liệu
@@ -128,7 +131,9 @@ public class TransactionService {
         return "Mượn sách thành công. Hạn trả là " + dueDate;
     }
 
-    // tra sach
+
+
+
     public String returnBook(String name, String title, String phoneNumber) {
         // Tìm thành viên theo số điện thoại
         if (phoneNumber == null || phoneNumber.isEmpty()) {
@@ -148,7 +153,7 @@ public class TransactionService {
 
         // Tìm các giao dịch mượn liên quan
         List<TransactionHistory> borrowTransactions = transactionHistoryRepo.findByMemberIdAndBookIdAndTransactionTypeAndStatus(
-                member.getMemberId(), book.getBookId(), "Mượn", true);
+                member.getMemberId(), book.getBookId(), "Mượn", "Đang mượn");
 
         if (borrowTransactions.isEmpty()) {
             return "Thành viên chưa mượn sách này hoặc sách đã được trả";
@@ -166,7 +171,7 @@ public class TransactionService {
 
         // Đánh dấu tất cả các giao dịch mượn liên quan thành false
         for (TransactionHistory borrowTransaction : borrowTransactions) {
-            borrowTransaction.setStatus(false);
+            borrowTransaction.setStatus("Đã trả");
             borrowTransaction.setDescription(borrowTransaction.getDescription() +
                     " (Đã trả vào ngày " + returnDate + ")");
         }
@@ -184,8 +189,8 @@ public class TransactionService {
         history.setPhoneNumber(member.getPhoneNumber());
         history.setTransactionType("Trả");
         history.setTransactionDate(returnDate);
-        history.setStatus(false);
-        history.setDueDate(returnDate);
+        history.setDueDate(null); // Không cần hạn trả khi trả sách
+        history.setStatus("Đã trả");
         history.setDescription("Trả sách: " + book.getTitle() + ", Ngày trả: " + returnDate);
 
         // Lưu giao dịch trả sách vào cơ sở dữ liệu
@@ -229,7 +234,7 @@ public class TransactionService {
 
         // Kiểm tra giao dịch mượn trong bảng transactionHistory với status = true
         List<TransactionHistory> borrowTransactions = transactionHistoryRepo.findByMemberIdAndBookIdAndTransactionTypeAndStatus(
-                member.getMemberId(), book.getBookId(), "Mượn", true);
+                member.getMemberId(), book.getBookId(), "Mượn", "Đang mượn");
 
         if (borrowTransactions.isEmpty()) {
             return "Thành viên chưa mượn sách này hoặc sách đã được trả";
@@ -238,7 +243,7 @@ public class TransactionService {
         TransactionHistory borrowTransaction = borrowTransactions.get(0);
 
         List<TransactionHistory> renewTransactions = transactionHistoryRepo.findByMemberIdAndBookIdAndTransactionTypeAndStatus(
-                member.getMemberId(), book.getBookId(), "Gia hạn", true);
+                member.getMemberId(), book.getBookId(), "Gia hạn", "Đang mượn");
         int maxRenewCount = 2;
         if (renewTransactions.size() >= maxRenewCount) {
             return "Sách này đã đạt giới hạn gia hạn tối đa.";
@@ -264,7 +269,7 @@ public class TransactionService {
             renewTransaction.setPhoneNumber(member.getPhoneNumber());
             renewTransaction.setTransactionDate(now);  // Ngày gia hạn hiện tại
             renewTransaction.setDueDate(newDueDate);  // Hạn mới
-            renewTransaction.setStatus(true);
+            renewTransaction.setStatus("Đang mượn");
             renewTransaction.setDescription("Gia hạn sách: " + book.getTitle() + ", Hạn mới: " + newDueDate);
 
             // Lưu giao dịch gia hạn vào cơ sở dữ liệu
@@ -292,7 +297,7 @@ public class TransactionService {
 
     public List<Map<String, String>> getAllBorrowTransactions() {
         // Lấy tất cả các giao dịch có loại "Mượn"
-        List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionTypeAndStatus("Mượn", true);
+        List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionTypeAndStatus("Mượn", "Đang mượn");
 
         List<Map<String, String>> result = new ArrayList<>();
         for (TransactionHistory transaction : transactions) {
@@ -305,7 +310,7 @@ public class TransactionService {
             transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
             transactionDetails.put("dueDate", transaction.getDueDate().toString());
-            transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
+            transactionDetails.put("status", transaction.getStatus());
             transactionDetails.put("description", transaction.getDescription());
 
             result.add(transactionDetails);
@@ -315,42 +320,27 @@ public class TransactionService {
     }
 
     public List<Map<String, String>> getAllReturnTransactions() {
-        try {
-            List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionType("Trả");
-            List<Map<String, String>> result = new ArrayList<>();
+        // Lấy tất cả giao dịch "Trả"
+        List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionType("Trả");
 
-            for (TransactionHistory transaction : transactions) {
-                try {
-                    Map<String, String> transactionDetails = new HashMap<>();
-                    transactionDetails.put("memberId", transaction.getMemberId());
-                    transactionDetails.put("memberName", transaction.getMemberName());
-                    transactionDetails.put("bookId", transaction.getBookId());
-                    transactionDetails.put("bookTitle", transaction.getTitle());
-                    transactionDetails.put("author", transaction.getAuthor());
-                    transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
+        // Chuyển đổi sang định dạng mong muốn
+        List<Map<String, String>> result = new ArrayList<>();
+        for (TransactionHistory transaction : transactions) {
+            Map<String, String> transactionDetails = new HashMap<>();
+            transactionDetails.put("memberId", transaction.getMemberId());
+            transactionDetails.put("memberName", transaction.getMemberName());
+            transactionDetails.put("bookId", transaction.getBookId());
+            transactionDetails.put("bookTitle", transaction.getTitle());
+            transactionDetails.put("author", transaction.getAuthor());
+            transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
+            transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
+            transactionDetails.put("status", transaction.getStatus() );
+            transactionDetails.put("description", transaction.getDescription());
 
-                    LocalDateTime transactionDate = transaction.getTransactionDate();
-                    if (transactionDate == null) {
-                        // If transactionDate is null, use dueDate (which is the return date in this case)
-                        transactionDate = transaction.getDueDate();
-                    }
-                    transactionDetails.put("transactionDate", transactionDate.toString());
-
-                    transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
-                    transactionDetails.put("description", transaction.getDescription());
-
-                    result.add(transactionDetails);
-                } catch (Exception e) {
-                    System.err.println("Lỗi khi xử lý transaction: " + e.getMessage());
-                    // Có thể log lỗi hoặc xử lý theo ý muốn
-                    continue;
-                }
-            }
-            return result;
-        } catch (Exception e) {
-            System.err.println("Lỗi khi lấy danh sách trả sách: " + e.getMessage());
-            return new ArrayList<>(); // Trả về list rỗng thay vì throw exception
+            result.add(transactionDetails); // Thêm Map<String, String> vào List
         }
+
+        return result;
     }
 
     public List<Map<String, String>> getAllRenewTransactions() {
@@ -368,35 +358,12 @@ public class TransactionService {
             transactionDetails.put("bookTitle", transaction.getTitle());
             transactionDetails.put("author", transaction.getAuthor());
             transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
-            transactionDetails.put("dueDate", transaction.getDueDate().toString());
+
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
-            transactionDetails.put("status", transaction.getStatus() ? "Đang mượn" : "Đã trả");
+            transactionDetails.put("status", transaction.getStatus());
             transactionDetails.put("description", transaction.getDescription());
 
             result.add(transactionDetails);
-        }
-
-        return result;
-    }
-
-    public List<Map<String, Object>> getMonthlyStatistics(String transactionType) {
-        List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionType(transactionType);
-
-        int[] monthlyCounts = new int[12];
-
-        for (TransactionHistory transaction : transactions) {
-            if (transaction.getTransactionDate() != null) {
-                int month = transaction.getTransactionDate().getMonthValue();
-                monthlyCounts[month - 1]++;
-            }
-        }
-
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (int i = 0; i < 12; i++) {
-            Map<String, Object> data = new HashMap<>();
-            data.put("name", "T" + (i + 1));
-            data.put("value", monthlyCounts[i]);
-            result.add(data);
         }
 
         return result;
@@ -411,6 +378,67 @@ public class TransactionService {
         return transactionHistoryRepo.countByTransactionTypeAndStatus("Trả", false);
     }
 
+    public List<Map<String, Object>> getMonthlyStatistics() {
+        List<TransactionHistory> borrowTransactions = transactionHistoryRepo.findByTransactionType("Đang mượn");
+        List<TransactionHistory> returnTransactions = transactionHistoryRepo.findByTransactionType("Đã Trả");
+
+        int[] borrowCount = new int[12];
+        int[] returnCount = new int[12];
+
+        for (TransactionHistory transaction : borrowTransactions) {
+            if (transaction.getTransactionDate() != null) {
+                int month = transaction.getTransactionDate().getMonthValue();
+                borrowCount[month - 1]++;
+            }
+        }
+        for (TransactionHistory transaction : returnTransactions) {
+            if (transaction.getTransactionDate() != null) {
+                int month = transaction.getTransactionDate().getMonthValue();
+                returnCount[month - 1]++;
+            }
+        }
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("return", borrowCount[i]);
+            data.put("month", "T" + (i + 1));
+            data.put("borrow", returnCount[i]);
+            result.add(data);
+        }
+
+        return result;
+    }
+
+    @Scheduled(cron = "0 52 15 * * ?", zone = "Asia/Ho_Chi_Minh")
+    public void updateOverdueBooks() {
+        // Lấy tất cả giao dịch có trạng thái "Đang mượn"
+        List<TransactionHistory> ongoingTransactions = transactionHistoryRepo.findByStatus("Đang mượn");
+
+        // Lặp qua từng giao dịch để kiểm tra hạn trả
+        for (TransactionHistory transaction : ongoingTransactions) {
+            if (transaction.getDueDate().isBefore(LocalDateTime.now())) {
+                // Cập nhật trạng thái giao dịch thành "Quá hạn"
+                transaction.setStatus("Quá hạn");
+                transaction.setDescription("Sách mượn đã quá hạn vào ngày " + transaction.getDueDate());
+
+                // Lưu thay đổi vào cơ sở dữ liệu
+                transactionHistoryRepo.save(transaction);
+
+                // Gửi email thông báo nếu cần
+                try {
+                    emailService.sendOverdueNotificationEmail(
+                            transaction.getMemberName(),
+                            transaction.getPhoneNumber(),
+                            transaction.getTitle(),
+                            transaction.getDueDate()
+                    );
+                } catch (MessagingException e) {
+                    System.err.println("Gửi email thông báo quá hạn thất bại: " + e.getMessage());
+                }
+            }
+        }
+    }
     public List<Map<String, Object>> getWeeklyStats(){
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startOfWeek = now.with(DayOfWeek.MONDAY);
@@ -439,7 +467,6 @@ public class TransactionService {
 
 
     }
-
     private String getDayName(DayOfWeek day) {
         switch (day) {
             case MONDAY: return "Thứ 2";
@@ -452,5 +479,5 @@ public class TransactionService {
             default: return "";
         }
     }
-
 }
+

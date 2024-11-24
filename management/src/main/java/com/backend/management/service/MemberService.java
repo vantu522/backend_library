@@ -137,7 +137,7 @@ public class MemberService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thành viên với ID: " + memberId));
 
         // Lấy các giao dịch mượn hoặc gia hạn đang hoạt động
-        List<TransactionHistory> activeTransactions = transactionHistoryRepo.findByMemberIdAndStatus(memberId, true);
+        List<TransactionHistory> activeTransactions = transactionHistoryRepo.findByMemberIdAndStatus(memberId, "Đang mượn");
 
         // Chuyển đổi danh sách giao dịch thành danh sách thông tin sách
         List<Map<String, String>> borrowedBooks = activeTransactions.stream()

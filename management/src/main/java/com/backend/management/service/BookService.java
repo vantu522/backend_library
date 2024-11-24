@@ -165,7 +165,6 @@ public class BookService {
                 .collect(Collectors.toList());
     }
 
-    // chinh sua ten the loai lon
     public void updateBigCategoryName(String oldName, String newName){
 
         Query query = new Query(Criteria.where("bigCategory.name").is(oldName));

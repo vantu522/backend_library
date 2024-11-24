@@ -21,7 +21,7 @@ public class TransactionController {
     private TransactionService transactionService;
 
 
-    // dem so sach dang muon
+//     dem so sach dang muon
     @GetMapping("/count-borrowed")
     public ResponseEntity<Long> getBorrowedBooksCount() {
         long count = transactionService.countBorrowedBooks();
@@ -128,20 +128,15 @@ public class TransactionController {
         return ResponseEntity.ok(stats);
     }
     @GetMapping ("/statistics")
-    public ResponseEntity<List<Map<String, Object>>> getMonthlyStatistics(
-            @RequestBody Map<String, String> requestBody
-    ) {
-        // Lấy giá trị "transactionType" từ requestBody
-        String transactionType = requestBody.get("transactionType");
+    public ResponseEntity<List<Map<String, Object>>> getMonthlyStatistics() {
+        try {
 
-        if (transactionType == null || transactionType.isEmpty()) {
-            return ResponseEntity.badRequest().body(null); // Phản hồi lỗi nếu thiếu transactionType
+            List<Map<String, Object>> statistics = transactionService.getMonthlyStatistics();
+            return ResponseEntity.ok(statistics);
+        } catch (Exception e) {
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
         }
-
-        // Gọi service để lấy thống kê
-        List<Map<String, Object>> statistics = transactionService.getMonthlyStatistics(transactionType);
-
-        return ResponseEntity.ok(statistics);
     }
-
 }

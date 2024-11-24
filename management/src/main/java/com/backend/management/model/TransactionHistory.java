@@ -31,7 +31,7 @@ public class TransactionHistory {
     private String transactionType;
     private LocalDateTime transactionDate;
     private LocalDateTime dueDate;  // Dùng cho mượn hoặc gia hạn nếu có
-    private Boolean  status; // True là vẫn đang mượn, False là đã trả
+    private String  status; // True là vẫn đang mượn, False là đã trả
     private String description;
 
     public void setId(String id) {
@@ -79,11 +79,11 @@ public class TransactionHistory {
         this.dueDate = dueDate;
     }
 
-    public boolean getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(boolean status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 

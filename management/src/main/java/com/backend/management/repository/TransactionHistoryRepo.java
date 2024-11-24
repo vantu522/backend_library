@@ -17,31 +17,30 @@ public interface TransactionHistoryRepo extends MongoRepository<TransactionHisto
     // Tìm tất cả các giao dịch theo loại giao dịch (mượn, trả, gia hạn, quá hạn)
     List<TransactionHistory> findByTransactionType(String transactionType);
 
-    // dem so sach dang o trang thai muon
-    List<TransactionHistory> findByTransactionTypeAndStatus(String transactionType, boolean status) ;
+    List<TransactionHistory> findByTransactionTypeAndStatus(String transactionType, String status) ;
 
     // Tìm tất cả các giao dịch của một cuốn sách cụ thể
     List<TransactionHistory> findByBookId(String bookId);
 
 
     List<TransactionHistory> findByMemberIdAndBookIdAndTransactionTypeAndStatus(
-            String memberId, String bookId, String transactionType, boolean status);
+            String memberId, String bookId, String transactionType, String status);
 
-    List<TransactionHistory> findByMemberIdAndStatusAndDueDateBefore(String memberId, boolean status, LocalDateTime dueDate);
+    List<TransactionHistory> findByMemberIdAndStatusAndDueDateBefore(String memberId, String status, LocalDateTime dueDate);
 
 
-    List<TransactionHistory> findByPhoneNumberAndStatusAndDueDateBefore(String phoneNumber, boolean status, LocalDateTime dueDate);
+    List<TransactionHistory> findByPhoneNumberAndStatusAndDueDateBefore(String phoneNumber, String status, LocalDateTime dueDate);
 
+    List<TransactionHistory> findByStatus(String status);
+
+    List<TransactionHistory> findByMemberIdAndBookIdAndStatus(String memberId, String bookId, String status);
+
+    List<TransactionHistory> findByMemberIdAndStatus(String memberId,  String status);
     long countByTransactionTypeAndStatus(String transactionType, boolean status);
-
-    List<TransactionHistory> findByMemberIdAndStatus(String memberId, boolean status);
-
-    // Thêm vào TransactionHistoryRepo
     long countByTransactionTypeAndTransactionDateBetween(
             String transactionType,
             LocalDateTime startDate,
             LocalDateTime endDate
     );
 
-    List<TransactionHistory> findByStatus(String status);
 }
