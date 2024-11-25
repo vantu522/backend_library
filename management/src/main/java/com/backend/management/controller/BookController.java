@@ -29,12 +29,13 @@ public class BookController {
 
     // lay tat ca cac sach
     @GetMapping
-    public ResponseEntity<PaginatedResponse<Book>> geAllBooks(
+    public ResponseEntity<PaginatedResponse<Book>> getAllBooks(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Page<Book> pageBooks = bookService.getAllBooks(page, size);
-            return ResponseEntity.ok(PaginatedResponse.of(pageBooks));
+            Page<Book> books = bookService.getAllBooks(page, size);
+            PaginatedResponse<Book> response = PaginatedResponse.of(books);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -144,15 +145,15 @@ public class BookController {
 
 
 
-    @PutMapping("/update-small-category")
-    public ResponseEntity<String> updateSmallCategory(
-            @RequestParam String bigCategoryName,
-            @RequestParam String oldSmallCategoryName,
-            @RequestParam String newSmallCategoryName) {
-
-        bookService.updateSmallCategory(bigCategoryName, oldSmallCategoryName, newSmallCategoryName);
-        return ResponseEntity.ok("Small category updated successfully.");
-    }
+//    @PutMapping("/update-small-category")
+//    public ResponseEntity<String> updateSmallCategory(
+//            @RequestParam String bigCategoryName,
+//            @RequestParam String oldSmallCategoryName,
+//            @RequestParam String newSmallCategoryName) {
+//
+//        bookService.updateSmallCategory(bigCategoryName, oldSmallCategoryName, newSmallCategoryName);
+//        return ResponseEntity.ok("Small category updated successfully.");
+//    }
 
 
 

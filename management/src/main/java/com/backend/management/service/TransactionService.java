@@ -364,7 +364,7 @@ public class TransactionService {
             transactionDetails.put("bookTitle", transaction.getTitle());
             transactionDetails.put("author", transaction.getAuthor());
             transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
-
+            transactionDetails.put("dueDate", transaction.getDueDate().toString());
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
             transactionDetails.put("status", transaction.getStatus());
             transactionDetails.put("description", transaction.getDescription());

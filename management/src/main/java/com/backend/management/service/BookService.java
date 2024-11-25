@@ -39,8 +39,12 @@ public class BookService {
 
     // lay tat ca cac sach
     public Page<Book> getAllBooks(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return bookRepo.findAll(pageable);
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            return bookRepo.findAll(pageable);
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching books: " + e.getMessage());
+        }
     }
 
 
@@ -200,23 +204,23 @@ public class BookService {
         mongoTemplate.remove(query,Book.class);
     }
 
-    public void updateSmallCategory(String bigCategoryName, String oldSmallCategoryName, String newSmallCategoryName) {
-        // Tạo truy vấn tìm các document phù hợp
-        Query query = new Query(Criteria.where("bigCategory")
-                .elemMatch(Criteria.where("name").is(bigCategoryName)
-                        .and("smallCategory").is(oldSmallCategoryName)));
-
-        // Tạo update để thay đổi giá trị
-        Update update = new Update()
-                .set("bigCategory.$[elem].smallCategory.$[subelem]", newSmallCategoryName);
-
-        // Thực hiện update nhiều document với collection và options cụ thể
-        mongoTemplate.updateMulti(
-                query,
-                update,
-                Book.class,
-                mongoTemplate.getCollectionName(Book.class)
-        );
-    }
+//    public void updateSmallCategory(String bigCategoryName, String oldSmallCategoryName, String newSmallCategoryName) {
+//        // Tạo truy vấn tìm các document phù hợp
+//        Query query = new Query(Criteria.where("bigCategory")
+//                .elemMatch(Criteria.where("name").is(bigCategoryName)
+//                        .and("smallCategory").is(oldSmallCategoryName)));
+//
+//        // Tạo update để thay đổi giá trị
+//        Update update = new Update()
+//                .set("bigCategory.$[elem].smallCategory.$[subelem]", newSmallCategoryName);
+//
+//        // Thực hiện update nhiều document với collection và options cụ thể
+//        mongoTemplate.updateMulti(
+//                query,
+//                update,
+//                Book.class,
+//                mongoTemplate.getCollectionName(Book.class)
+//        );
+//    }
 
 }
