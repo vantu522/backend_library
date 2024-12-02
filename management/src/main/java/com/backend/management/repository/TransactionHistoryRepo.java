@@ -33,6 +33,8 @@ public interface TransactionHistoryRepo extends MongoRepository<TransactionHisto
 
     List<TransactionHistory> findByStatus(String status);
 
+//    List<TransactionHistory> findByState (String state);
+
     List<TransactionHistory> findByMemberIdAndBookIdAndStatus(String memberId, String bookId, String status);
 
     List<TransactionHistory> findByMemberIdAndStatus(String memberId,  String status);
@@ -43,4 +45,9 @@ public interface TransactionHistoryRepo extends MongoRepository<TransactionHisto
             LocalDateTime endDate
     );
 
+
+
+    Optional<TransactionHistory> findByphoneNumberAndTitleAndStatus(String phoneNumber, String title, String đangChờ);
+
+//    List<TransactionHistory> findByMemberIdAndBookIdAndRequestStatus(String memberId, String bookId, String state);
 }

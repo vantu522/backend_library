@@ -82,6 +82,12 @@ public class TransactionService {
             return "Bạn đã mượn sách này trước đó. Không thể mượn cùng lúc hai quyển sách giống nhau.";
         }
 
+        List<TransactionHistory> pendingRequest = transactionHistoryRepo.findByMemberIdAndBookIdAndStatus(member.getMemberId(),book.getBookId(),"Đang chờ");
+
+        if (!pendingRequest.isEmpty()) {
+            return "Yêu cầu đang được xử lý, bạn không cần yêu cầu thêm";
+        }
+
         LocalDateTime borrowDate = LocalDateTime.now();
         LocalDateTime dueDate = borrowDate.plus(14, ChronoUnit.DAYS);
 
@@ -106,7 +112,7 @@ public class TransactionService {
         history.setTransactionType("Mượn");
         history.setTransactionDate(borrowDate);
         history.setDueDate(dueDate);
-        history.setStatus("Đang mượn");
+        history.setStatus("Đang chờ");
         history.setDescription("Mượn sách: " + book.getTitle() + ", Hạn trả: " + dueDate);
 
         // Lưu giao dịch vào cơ sở dữ liệu
@@ -115,21 +121,65 @@ public class TransactionService {
         // Lưu thay đổi vào cơ sở dữ liệu
         bookRepo.save(book);
         memberRepo.save(member);
+//
+//        try {
+//            emailService.sendBorrowSuccessEmail(
+//                    member.getName(),
+//                    member.getEmail(),
+//                    book.getTitle(),
+//                    borrowDate,
+//                    dueDate
+//            );
+//        } catch (MessagingException e) {
+//            System.err.println("Gửi email thất bại: " + e.getMessage());
+//        }
 
-        try {
-            emailService.sendBorrowSuccessEmail(
-                    member.getName(),
-                    member.getEmail(),
-                    book.getTitle(),
-                    borrowDate,
-                    dueDate
-            );
-        } catch (MessagingException e) {
-            System.err.println("Gửi email thất bại: " + e.getMessage());
+        return "Yêu cầu mượn sách đã được gửi và đang chờ quản trị viên phê duyệt";
+    }
+
+    // Phương thức phê duyệt yêu cầu mượn sách
+    public String approveRequest(String name, String title, String phoneNumber, boolean isAprove) {
+        Optional<TransactionHistory> optionalTransaction = transactionHistoryRepo.findByphoneNumberAndTitleAndStatus(phoneNumber, title, "Đang chờ" );
+
+        if (optionalTransaction.isEmpty()) {
+            return "Không tìm thấy yêu cầu";
         }
 
-        return "Mượn sách thành công. Hạn trả là " + dueDate;
+        TransactionHistory yeuCau = optionalTransaction.get();
+
+        if (!yeuCau.getStatus().equals("Đang chờ")) {
+            return "Yêu cầu này đã được xử lý trước đó";
+        }
+
+        if (isAprove) {
+            // Xử lý phê duyệt
+            Optional<Book> book = bookRepo.findByBookId(yeuCau.getBookId());
+            Optional<Member> member = memberRepo.findByMemberId(yeuCau.getMemberId());
+
+
+            // Cập nhật trạng thái giao dịch
+            yeuCau.setStatus("Đang mượn");
+            yeuCau.setTransactionType("Mượn");
+//            LocalDateTime ngayMuon = LocalDateTime.now();
+//            LocalDateTime ngayTra = ngayMuon.plusDays(14);
+//
+//            yeuCau.setTransactionDate(ngayMuon);
+//            yeuCau.setDueDate(ngayTra);
+
+            // Lưu các thay đổi
+//            bookRepo.save(book);
+//            memberRepo.save(member);
+            transactionHistoryRepo.save(yeuCau);
+
+            return "Yêu cầu đã được phê duyệt. Sách đã được cho mượn.";
+        } else {
+            // Từ chối yêu cầu
+            yeuCau.setStatus("Từ chối");
+            transactionHistoryRepo.save(yeuCau);
+            return "Yêu cầu mượn sách đã bị từ chối.";
+        }
     }
+
 
 
 
@@ -258,7 +308,7 @@ public class TransactionService {
 
         long daysLeft = ChronoUnit.DAYS.between(now, dueDate);
 
-        if (daysLeft < 7) {
+        if (daysLeft > 7) {
             LocalDateTime newDueDate = now.plus(7, ChronoUnit.DAYS);
             String authorString = String.join(", ", book.getAuthor());
 
@@ -339,7 +389,7 @@ public class TransactionService {
             transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
             transactionDetails.put("dueDate", transaction.getDueDate() != null ?
-                transaction.getDueDate().toString() : transaction.getTransactionDate().toString());
+            transaction.getDueDate().toString() : transaction.getTransactionDate().toString());
             transactionDetails.put("status", transaction.getStatus());
             transactionDetails.put("description", transaction.getDescription());
 
@@ -366,6 +416,29 @@ public class TransactionService {
             transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
 
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
+            transactionDetails.put("status", transaction.getStatus());
+            transactionDetails.put("description", transaction.getDescription());
+
+            result.add(transactionDetails);
+        }
+
+        return result;
+    }
+
+    public List<Map<String, String>> getAllPendingTransactions() {
+        List<TransactionHistory> transactions = transactionHistoryRepo.findByTransactionTypeAndStatus("Mượn", "Đang chờ");
+
+        List<Map<String, String>> result = new ArrayList<>();
+        for (TransactionHistory transaction : transactions) {
+            Map<String, String> transactionDetails = new HashMap<>();
+            transactionDetails.put("memberId", transaction.getMemberId());
+            transactionDetails.put("memberName", transaction.getMemberName());
+            transactionDetails.put("bookId", transaction.getBookId());
+            transactionDetails.put("bookTitle", transaction.getTitle());
+            transactionDetails.put("author", transaction.getAuthor());
+            transactionDetails.put("phoneNumber", transaction.getPhoneNumber());
+            transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
+            transactionDetails.put("dueDate", transaction.getDueDate().toString());
             transactionDetails.put("status", transaction.getStatus());
             transactionDetails.put("description", transaction.getDescription());
 
@@ -484,5 +557,9 @@ public class TransactionService {
             default: return "";
         }
     }
+
+
+
+
 }
 

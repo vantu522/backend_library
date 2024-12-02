@@ -98,5 +98,24 @@ public class MemberController {
         }
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestParam String username, @RequestParam String password) {
+        Member member = memberService.login(username, password);
+        if (member != null) {
+            return ResponseEntity.ok(member);
+        } else {
+            return ResponseEntity.status(401).body("Sai tài khoản hoặc mật khẩu");
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestParam String memberId) {
+        boolean success = memberService.logout(memberId);
+        if (success) {
+            return ResponseEntity.ok("Đăng xuất thành công");
+        } else {
+            return ResponseEntity.status(400).body("Đăng xuất thất bại");
+        }
+    }
 
 }

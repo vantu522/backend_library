@@ -21,4 +21,5 @@ public interface MemberRepo extends MongoRepository<Member, String> {
 
     List<Member> findByNameAndPhoneNumber(String name, String phoneNumber);
 
+    Member findByUsername(String username);
 }
