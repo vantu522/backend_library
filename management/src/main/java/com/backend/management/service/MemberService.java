@@ -197,7 +197,16 @@ public class MemberService {
         return result;
     }
 
-
+    public Member login(String username, String password) {
+        Member member = memberRepo.findByUsername(username);
+        if( member != null && member.getPassword().equals(password)) {
+            return  member;
+        }
+        return null;
+    }
+    public boolean logout(String memberId) {
+        return true;
+    }
 
 
 

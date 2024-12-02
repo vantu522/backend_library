@@ -33,6 +33,7 @@ public class TransactionHistory {
     private LocalDateTime dueDate;  // Dùng cho mượn hoặc gia hạn nếu có
     private String  status; // True là vẫn đang mượn, False là đã trả
     private String description;
+//    private String state;
 
     public void setId(String id) {
         this.id = id;
@@ -96,6 +97,11 @@ public class TransactionHistory {
         this.description = description;
     }
 
-
-
+//    public String getState() {
+//        return state;
+//    }
+//
+//    public void setState(String state) {
+//        this.state = state;
+//    }
 }

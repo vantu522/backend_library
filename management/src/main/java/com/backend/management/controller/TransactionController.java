@@ -52,6 +52,12 @@ public class TransactionController {
         return ResponseEntity.ok(transactions);
     }
 
+    @GetMapping("/pending")
+    public ResponseEntity<List<Map<String, String>>> getBookPending() {
+        List<Map<String, String>> transactions = transactionService.getAllPendingTransactions();
+        return ResponseEntity.ok(transactions);
+    }
+
 
     @PostMapping("/borrow")
     public ResponseEntity<String> borrowBook(@RequestBody Map<String, String> requestBody) {
@@ -115,6 +121,15 @@ public class TransactionController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Đã xảy ra lỗi khi trả sách: " + e.getMessage());
         }
 
+    }
+    @PostMapping("/approve")
+    public String approveRequest(@RequestBody Map<String, Object> requestBody) {
+        String name = (String) requestBody.get("name");
+        String title = (String) requestBody.get("title");
+        String phoneNumber = (String) requestBody.get("phoneNumber");
+        boolean isAprove = (boolean) requestBody.get("isAprove");
+
+        return transactionService.approveRequest(name, title, phoneNumber, isAprove);
     }
 
     @GetMapping("/weekly-stats")
