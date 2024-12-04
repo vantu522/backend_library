@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -37,7 +38,7 @@ public class TransactionService {
     private Member member;
 
     // Phương thức mượn sách
-    public String borrowBook(String name, String title, String phoneNumber) {
+    public String borrowBook(String name, String title, String phoneNumber, String borrowDateStr) {
         Member member = null;
 
         // Tìm thành viên theo số điện thoại
@@ -58,11 +59,9 @@ public class TransactionService {
             return "Không tìm thấy sách với tiêu đề này";
         }
 
-
-
         // Kiểm tra các điều kiện mượn sách
         if (book.getQuantity() == 0) {
-            throw  new BookUnavailableException("Sách hiện không có sẵn");
+            throw new BookUnavailableException("Sách hiện không có sẵn");
         }
 
         if (member.getBooksBorrowed() == 5) {
@@ -82,13 +81,22 @@ public class TransactionService {
             return "Bạn đã mượn sách này trước đó. Không thể mượn cùng lúc hai quyển sách giống nhau.";
         }
 
-        List<TransactionHistory> pendingRequest = transactionHistoryRepo.findByMemberIdAndBookIdAndStatus(member.getMemberId(),book.getBookId(),"Đang chờ");
+        List<TransactionHistory> pendingRequest = transactionHistoryRepo.findByMemberIdAndBookIdAndStatus(member.getMemberId(), book.getBookId(), "Đang chờ");
 
         if (!pendingRequest.isEmpty()) {
             return "Yêu cầu đang được xử lý, bạn không cần yêu cầu thêm";
         }
 
-        LocalDateTime borrowDate = LocalDateTime.now();
+        // Chuyển đổi ngày mượn từ chuỗi sang LocalDateTime
+        LocalDateTime borrowDate = null;
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            borrowDate = LocalDateTime.parse(borrowDateStr + " 12:00", formatter);
+        } catch (Exception e) {
+            return "Ngày mượn không hợp lệ. Vui lòng nhập theo định dạng yyyy-MM-dd.";
+        }
+
+        // Xử lý ngày hết hạn
         LocalDateTime dueDate = borrowDate.plus(14, ChronoUnit.DAYS);
 
         // Cập nhật số lượng sách và số lượng sách đã mượn của thành viên
@@ -98,7 +106,6 @@ public class TransactionService {
         if (book.getQuantity() == 0) {
             book.setAvailability(false);
         }
-
 
         // Tạo bản ghi lịch sử giao dịch
         String authorString = String.join(", ", book.getAuthor());
@@ -121,18 +128,6 @@ public class TransactionService {
         // Lưu thay đổi vào cơ sở dữ liệu
         bookRepo.save(book);
         memberRepo.save(member);
-//
-//        try {
-//            emailService.sendBorrowSuccessEmail(
-//                    member.getName(),
-//                    member.getEmail(),
-//                    book.getTitle(),
-//                    borrowDate,
-//                    dueDate
-//            );
-//        } catch (MessagingException e) {
-//            System.err.println("Gửi email thất bại: " + e.getMessage());
-//        }
 
         return "Yêu cầu mượn sách đã được gửi và đang chờ quản trị viên phê duyệt";
     }

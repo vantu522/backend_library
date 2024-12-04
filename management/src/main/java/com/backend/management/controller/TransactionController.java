@@ -65,6 +65,7 @@ public class TransactionController {
         String name = requestBody.get("name");
         String title = requestBody.get("title");
         String phoneNumber = requestBody.get("phoneNumber");
+        String borrowDateStr = requestBody.get("borrowDateStr");
 
 //        if (name == null || name.isEmpty() || title == null || title.isEmpty() ) {
 //            return ResponseEntity.badRequest().body("Thiếu thông tin cần thiết: name, title, memberId, bookId");
@@ -72,7 +73,7 @@ public class TransactionController {
 
         try {
             // Gọi service để mượn sách
-            String result = transactionService.borrowBook(name, title, phoneNumber);
+            String result = transactionService.borrowBook(name, title, phoneNumber, borrowDateStr);
 
             // Trả kết quả lại cho client
             return ResponseEntity.ok(result);
