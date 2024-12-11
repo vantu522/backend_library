@@ -20,6 +20,7 @@ public class Book {
     private Boolean availability;
     private String img;
     private String nxb;
+    private List<String> likedByMembers;
 
 
 
@@ -27,7 +28,9 @@ public class Book {
     public Book() {
     }
 
-    public Book(String bookId, String title, String description, List<String> author, Integer publicationYear, List<BookCategory> bigCategory , Integer quantity, Boolean availability, String img,String nxb) {
+
+
+    public Book(String bookId, String title, String description, List<String> author, Integer publicationYear, List<BookCategory> bigCategory , Integer quantity, Boolean availability, String img, String nxb, List<String> likedByMembers) {
         this.bookId = bookId;
         this.title = title;
         this.description = description;
@@ -38,6 +41,7 @@ public class Book {
         this.availability = availability;
         this.img=img;
         this.nxb=nxb;
+        this.likedByMembers=likedByMembers;
     }
     public String getBookId() {
         return bookId;
@@ -117,6 +121,14 @@ public class Book {
 
     public void setAvailability(Boolean availability) {
         this.availability = availability;
+    }
+
+    public List<String> getLikedByMembers() {
+        return likedByMembers;
+    }
+
+    public void setLikedByMembers(List<String> likedByMembers) {
+        this.likedByMembers = likedByMembers;
     }
 
 

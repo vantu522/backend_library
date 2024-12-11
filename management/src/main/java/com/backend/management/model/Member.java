@@ -17,6 +17,7 @@ public class Member extends Person {
     private String username;
     private String password;
 
+
     public Member(String name, String email, String phoneNumber, String address, String memberId,  int booksBorrowed, String username, String password) {
         super(name, email, phoneNumber, address);
         this.memberId = memberId;
@@ -24,6 +25,7 @@ public class Member extends Person {
 //        this.createdDate=createdDate;
         this.username = username;
         this.password = password;
+
     }
 
     public String getMemberId() {

@@ -48,6 +48,8 @@ public interface BookRepo extends MongoRepository<Book, String>  {
             fields = "{ 'bigCategory.$': 1 }")
     List<Book> findByBigCategoryName(String bigCategoryName);
 
+    List<String> findByLikedByMembersContains(String memberId);
+
 
 
 
