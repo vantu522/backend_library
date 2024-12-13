@@ -3,10 +3,12 @@ package com.backend.management.service;
 import com.backend.management.model.Post;
 import com.backend.management.repository.PostRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Service
 public class PostService {
     @Autowired
     private PostRepo postRepo;
@@ -16,9 +18,8 @@ public class PostService {
         return postRepo.save(post);
     }
 
-    // Lấy tất cả bài viết
-    public List<Post> getAllPosts() {
-        return postRepo.findByIsPublishedTrue();
+    public List<Post> getPublicPosts() {
+        return postRepo.findByStatus("công khai"); // Trả về các bài viết công khai
     }
 
 

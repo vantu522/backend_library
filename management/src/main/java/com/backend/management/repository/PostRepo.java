@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface PostRepo extends MongoRepository<Post,String> {
     List<Post> findByAuthor(String author);
-    List<Post> findByIsPublishedTrue();
+    List<Post> findByStatus(String status);
 }
