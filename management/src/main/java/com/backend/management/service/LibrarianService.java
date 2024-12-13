@@ -94,8 +94,6 @@ public class LibrarianService {
             String emailContent = templateEngine.process("email/reset", context);
 
 
-
-
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
             helper.setTo(email);

@@ -14,16 +14,14 @@ public class Member extends Person {
     private String memberId;
     private int booksBorrowed;
 //    private LocalDateTime createdDate;
-    private String username;
     private String password;
 
 
-    public Member(String name, String email, String phoneNumber, String address, String memberId,  int booksBorrowed, String username, String password) {
+    public Member(String name, String email, String phoneNumber, String address, String memberId,  int booksBorrowed,  String password) {
         super(name, email, phoneNumber, address);
         this.memberId = memberId;
         this.booksBorrowed = booksBorrowed;
 //        this.createdDate=createdDate;
-        this.username = username;
         this.password = password;
 
     }
@@ -54,17 +52,13 @@ public class Member extends Person {
     }
 
 
-    public String getUsername() {
-        return username;
-    }
+
 
     public void setPassword(String password) {
         this.password = password;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+
     public String getPassword() {
         return  password;
     }
