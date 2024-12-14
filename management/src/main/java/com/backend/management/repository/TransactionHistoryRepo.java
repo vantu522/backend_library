@@ -2,14 +2,20 @@ package com.backend.management.repository;
 
 import com.backend.management.model.Member;
 import com.backend.management.model.TransactionHistory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import javax.swing.text.Document;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface TransactionHistoryRepo extends MongoRepository<TransactionHistory, String> {
+public interface TransactionHistoryRepo extends MongoRepository<TransactionHistory, String>, CustomTransactionHistoryRepo {
     // Tìm tất cả các giao dịch của một thành viên cụ thể
     List<TransactionHistory> findByMemberId(String memberId);
 
@@ -50,4 +56,7 @@ public interface TransactionHistoryRepo extends MongoRepository<TransactionHisto
     Optional<TransactionHistory> findByphoneNumberAndTitleAndStatus(String phoneNumber, String title, String đangChờ);
 
 //    List<TransactionHistory> findByMemberIdAndBookIdAndRequestStatus(String memberId, String bookId, String state);
+
+
 }
+
