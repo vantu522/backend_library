@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.w3c.dom.DocumentType;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -111,6 +112,8 @@ public class TransactionController {
         try {
             // Gọi service để trả sách
             String result = transactionService.returnBook(name, title,phoneNumber);
+            Map<String, Object> response = new HashMap<>();
+            response.put("ratingLink", "/ratings/submit");
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             // Xử lý lỗi nếu có
