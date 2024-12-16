@@ -3,13 +3,17 @@ package com.backend.management.controller;
 import com.backend.management.exception.BookUnavailableException;
 import com.backend.management.exception.InvalidRequestException;
 import com.backend.management.model.TransactionHistory;
+import com.backend.management.repository.TransactionHistoryRepo;
 import com.backend.management.service.TransactionService;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.pulsar.PulsarProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.w3c.dom.DocumentType;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +23,8 @@ public class TransactionController {
 
     @Autowired
     private TransactionService transactionService;
+    @Autowired
+    private TransactionHistoryRepo transactionHistoryRepo;
 
 
 //     dem so sach dang muon
@@ -102,6 +108,8 @@ public class TransactionController {
         try {
             // Gọi service để trả sách
             String result = transactionService.returnBook(name, title,phoneNumber);
+            Map<String, Object> response = new HashMap<>();
+            response.put("ratingLink", "/ratings/submit");
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             throw e;
@@ -149,5 +157,10 @@ public class TransactionController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(null);
         }
+    }
+    @GetMapping("/topBorrow")
+    @ResponseBody
+    public List<Document> getTop10BorrowBook() {
+        return transactionHistoryRepo.findTop10MostBorrowedBooks();
     }
 }
