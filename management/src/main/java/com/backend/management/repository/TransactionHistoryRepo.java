@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
-
+import org.springframework.data.domain.Sort;
 import javax.swing.text.Document;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -57,6 +57,7 @@ public interface TransactionHistoryRepo extends MongoRepository<TransactionHisto
 
 //    List<TransactionHistory> findByMemberIdAndBookIdAndRequestStatus(String memberId, String bookId, String state);
 
+    List<TransactionHistory> findByMemberIdOrderByTransactionDateDesc(String memberId);
 
 }
 
