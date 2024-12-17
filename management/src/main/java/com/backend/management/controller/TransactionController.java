@@ -158,8 +158,8 @@ public class TransactionController {
                     .body(null);
         }
     }
+
     @GetMapping("/topBorrow")
-    @ResponseBody
     public List<Document> getTop10BorrowBook() {
         return transactionHistoryRepo.findTop10MostBorrowedBooks();
     }
