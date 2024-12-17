@@ -25,17 +25,15 @@ import static java.lang.System.in;
 
 @Service
 public class EmailService {
-
-    @Autowired
-    private JavaMailSender mailSender;
-
     @Autowired
     private TemplateEngine templateEngine;
     @Autowired
     private MemberRepo memberRepo;
-
     @Autowired
     private TransactionHistoryRepo transactionHistoryRepo;
+    @Autowired
+    private JavaMailSender mailSender;
+
 
     @Async
     public void sendBorrowSuccessEmail(String name, String email, String title,

@@ -20,6 +20,8 @@ public class Book {
     private Boolean availability;
     private String img;
     private String nxb;
+    private List<String> likedByMembers;
+    private Integer pageCount;
 
 
 
@@ -27,24 +29,37 @@ public class Book {
     public Book() {
     }
 
-    public Book(String bookId, String title, String description, List<String> author, Integer publicationYear, List<BookCategory> bigCategory , Integer quantity, Boolean availability, String img,String nxb) {
+
+    public Book(String bookId, String title, String description, List<String> author, Integer publicationYear, List<BookCategory> bigCategory, Boolean availability, Integer quantity, String img, String nxb, List<String> likedByMembers, Integer pageCount) {
         this.bookId = bookId;
         this.title = title;
         this.description = description;
-        this.author = new ArrayList<>(author != null ? author : new ArrayList<>());
+        this.author = author;
         this.publicationYear = publicationYear;
-        this.bigCategory = new ArrayList<>(bigCategory != null ? bigCategory : new ArrayList<>());
-        this.quantity = quantity;
+        this.bigCategory = bigCategory;
         this.availability = availability;
-        this.img=img;
-        this.nxb=nxb;
+        this.quantity = quantity;
+        this.img = img;
+        this.nxb = nxb;
+        this.likedByMembers = likedByMembers;
+        this.pageCount = pageCount;
     }
+
+
     public String getBookId() {
         return bookId;
     }
 
     public String getTitle() {
         return title;
+    }
+
+    public Integer getPageCount() {
+        return pageCount;
+    }
+
+    public void setPageCount(Integer pageCount) {
+        this.pageCount = pageCount;
     }
 
     public String getDescription() {
@@ -117,6 +132,14 @@ public class Book {
 
     public void setAvailability(Boolean availability) {
         this.availability = availability;
+    }
+
+    public List<String> getLikedByMembers() {
+        return likedByMembers;
+    }
+
+    public void setLikedByMembers(List<String> likedByMembers) {
+        this.likedByMembers = likedByMembers;
     }
 
 

@@ -1,8 +1,13 @@
 package com.backend.management.controller;
 
+import com.backend.management.exception.InvalidCredentialsException;
+import com.backend.management.exception.ResourceNotFoundException;
+import com.backend.management.model.LoginRequest;
+import com.backend.management.model.LoginUser;
 import com.backend.management.model.Member;
 import com.backend.management.service.MemberService;
 import com.backend.management.service.ValidationService;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -99,23 +104,62 @@ public class MemberController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam String username, @RequestParam String password) {
-        Member member = memberService.login(username, password);
-        if (member != null) {
+    public ResponseEntity<?> login(@RequestBody LoginUser loginUser){
+        try{
+            Member member = memberService.authenticateMember(loginUser.getEmail(), loginUser.getPassword());
             return ResponseEntity.ok(member);
-        } else {
-            return ResponseEntity.status(401).body("Sai tài khoản hoặc mật khẩu");
+        } catch(InvalidCredentialsException e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
         }
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestParam String memberId) {
-        boolean success = memberService.logout(memberId);
-        if (success) {
-            return ResponseEntity.ok("Đăng xuất thành công");
-        } else {
-            return ResponseEntity.status(400).body("Đăng xuất thất bại");
+    // gui ma otp
+    @PostMapping("/send-otp")
+    public ResponseEntity<?> sendPasswordResetOtp(@RequestBody LoginUser request) {
+        try {
+            if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Username không được để trống");
+            }
+
+            memberService.sendPasswordResetOtp(request.getEmail());
+            return ResponseEntity.ok("Đã gửi OTP thành công");
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Không tìm thấy người dùng với email: " + request.getEmail());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi gửi email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi hệ thống: " + e.getMessage());
         }
     }
+
+    // doi mat khau
+    @PostMapping("/reset")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request){
+        memberService.resetPasswordWithOtp(
+                request.get("email"),
+                request.get("otp"),
+                request.get("newPassword")
+        );
+        return ResponseEntity.ok().body("mat khau doi thanh cong");
+    }
+
+    // Đổi mật khẩu (khi đã đăng nhập)
+    @PostMapping("/change")
+    public ResponseEntity<?> changePassword(@RequestBody Map<String, String> request) {
+        memberService.changePassword(
+                request.get("email"),
+                request.get("oldPassword"),
+                request.get("newPassword")
+        );
+        return ResponseEntity.ok().body("Mật khẩu đã được đổi thành công");
+    }
+
+
+
 
 }

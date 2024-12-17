@@ -13,10 +13,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 @Repository
-public interface BookRepo extends MongoRepository<Book, String> {
+public interface BookRepo extends MongoRepository<Book, String>  {
 
     Optional<Book> findByBookId(String bookId);
 
@@ -48,6 +47,8 @@ public interface BookRepo extends MongoRepository<Book, String> {
     @Query(value = "{ 'bigCategory': { $elemMatch: { 'name': ?0 } } }",
             fields = "{ 'bigCategory.$': 1 }")
     List<Book> findByBigCategoryName(String bigCategoryName);
+
+    List<String> findByLikedByMembersContains(String memberId);
 
 
 

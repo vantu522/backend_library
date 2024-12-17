@@ -12,7 +12,6 @@ public interface MemberRepo extends MongoRepository<Member, String> {
 
     Optional<Member> findByMemberId(String memberId);
 
-    List<Member> findByName(String name);
 
 
     Optional<Member> findByEmail(String email);
@@ -21,5 +20,4 @@ public interface MemberRepo extends MongoRepository<Member, String> {
 
     List<Member> findByNameAndPhoneNumber(String name, String phoneNumber);
 
-    Member findByUsername(String username);
 }

@@ -1,6 +1,9 @@
 package com.backend.management.service;
 
+import com.backend.management.exception.InvalidCredentialsException;
+import com.backend.management.exception.InvalidOtpException;
 import com.backend.management.exception.ResourceNotFoundException;
+import com.backend.management.model.Librarian;
 import com.backend.management.model.Member;
 import com.backend.management.model.TransactionHistory;
 import com.backend.management.repository.BookRepo;
@@ -8,13 +11,20 @@ import com.backend.management.repository.MemberRepo;
 import com.backend.management.repository.TransactionHistoryRepo;
 import com.backend.management.repository.TransactionRepo;
 import com.backend.management.utils.SlugUtil;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.validation.constraints.Email;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.core.Local;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.repository.Query;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.text.Normalizer;
 import java.time.LocalDateTime;
@@ -38,6 +48,15 @@ public class MemberService {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    private TemplateEngine templateEngine;
+
+    @Autowired
+    private JavaMailSender mailSender;
 
     //lay tat ca cac member
     public List<Member> getAllMembers(){
@@ -74,7 +93,8 @@ public class MemberService {
     public Member createMember(Member member){
         // check email hop le chua
         validationService.isValidEmail(member.getEmail());
-
+        String encodedPassword = passwordEncoder.encode(member.getPassword());
+        member.setPassword(encodedPassword);
         // kieam tra xem email ton tai chua
         Optional<Member> existingMember = memberRepo.findByEmail(member.getEmail());
         if(existingMember.isPresent()){
@@ -197,16 +217,116 @@ public class MemberService {
         return result;
     }
 
-    public Member login(String username, String password) {
-        Member member = memberRepo.findByUsername(username);
-        if( member != null && member.getPassword().equals(password)) {
-            return  member;
+    // lam dnag nhap/dang ki cho member
+    private Map<String, OtpData> otpStorage = new HashMap<>();
+    // Class để lưu thông tin OTP
+    private static class OtpData {
+        String otp;
+        long timestamp;
+
+        OtpData(String otp) {
+            this.otp = otp;
+            this.timestamp = System.currentTimeMillis();
         }
-        return null;
     }
-    public boolean logout(String memberId) {
-        return true;
+
+    public Member getMemberByEmail(String email){
+        Optional<Member> member = memberRepo.findByEmail(email);
+
+        if(!member.isPresent()){
+            throw new ResourceNotFoundException("Không tìm thấy người dùng với email: " + email);
+        }
+        return member.get();
     }
+
+    // xac thuc password
+    public Member authenticateMember(String email, String password){
+        Member member = getMemberByEmail(email);
+
+        if(passwordEncoder.matches(password, member.getPassword())){
+            return member;
+        } else{
+            throw new InvalidCredentialsException("Invalid username or password");
+        }
+
+    }
+
+    //
+    public void sendPasswordResetOtp(String email) throws MessagingException{
+        try{
+            Member member = getMemberByEmail(email);
+
+            // Validate email trước khi gửi
+            if (email == null || !validationService.isValidEmail(email)) {
+                throw new IllegalArgumentException("Email không hợp lệ: " + email);
+            }
+
+            String otp = generateOtp();
+            otpStorage.put(email, new OtpData(otp));
+
+            //render noi dung tu template
+            Context context = new Context();
+            context.setVariable("email", email);
+            context.setVariable("otp",otp);
+            String emailContent = templateEngine.process("email/reset", context);
+
+
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setTo(email);
+            helper.setSubject("Đặt lại mật khẩu - Mã OTP");
+            helper.setText(emailContent, true);
+            mailSender.send(mimeMessage);
+
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (MessagingException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi gửi OTP: " + e.getMessage());
+        }
+    }
+
+    // xac thuc otp va doi mat khau
+    public void resetPasswordWithOtp(String email, String otp, String newPassword){
+        OtpData otpData = otpStorage.get(email);
+        if(otpData == null || !isOtpValid(otpData,otp)){
+            throw new InvalidOtpException("OTP không hợp lệ hoặc đã hết hạn");
+        }
+        Member member = getMemberByEmail(email);
+        member.setPassword(passwordEncoder.encode(newPassword));
+        memberRepo.save(member);
+
+        otpStorage.remove(email);
+    }
+
+    // 3. Đổi mật khẩu (khi đã đăng nhập)
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        // Xác thực mật khẩu cũ
+        Member member = authenticateMember(email, oldPassword);
+
+        // Đổi mật khẩu mới
+        member.setPassword(passwordEncoder.encode(newPassword));
+        memberRepo.save(member);
+    }
+
+
+
+
+    // Helper methods
+    private String generateOtp() {
+        Random random = new Random();
+        return String.format("%06d", random.nextInt(1000000));
+    }
+
+    private boolean isOtpValid(OtpData otpData, String inputOtp) {
+        long currentTime = System.currentTimeMillis();
+        return otpData.otp.equals(inputOtp) &&
+                (currentTime - otpData.timestamp) <= 5 * 60 * 1000; // 5 phút
+    }
+
 
 
 

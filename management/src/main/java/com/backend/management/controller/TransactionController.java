@@ -105,10 +105,6 @@ public class TransactionController {
         String title = requestBody.get("title");
         String phoneNumber = requestBody.get("phoneNumber");
 
-//        if (memberId == null || memberId.isEmpty() || bookId == null || bookId.isEmpty()) {
-//            return ResponseEntity.badRequest().body("Thiếu thông tin: memberId, bookId");
-//        }
-
         try {
             // Gọi service để trả sách
             String result = transactionService.returnBook(name, title,phoneNumber);
@@ -116,8 +112,7 @@ public class TransactionController {
             response.put("ratingLink", "/ratings/submit");
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            // Xử lý lỗi nếu có
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Đã xảy ra lỗi khi trả sách: " + e.getMessage());
+            throw e;
         }
     }
 
