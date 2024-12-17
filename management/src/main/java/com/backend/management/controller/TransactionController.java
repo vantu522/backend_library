@@ -163,4 +163,11 @@ public class TransactionController {
     public List<Document> getTop10BorrowBook() {
         return transactionHistoryRepo.findTop10MostBorrowedBooks();
     }
+
+    @GetMapping("/user")
+    public ResponseEntity<List<TransactionHistory>> getUserTransactionHistory(
+            @RequestParam String memberId) {
+        List<TransactionHistory> transactionHistory = transactionService.getTransactionHistoryByUser(memberId);
+        return ResponseEntity.ok(transactionHistory);
+    }
 }

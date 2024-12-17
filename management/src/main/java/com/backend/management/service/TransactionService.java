@@ -553,8 +553,10 @@ public class TransactionService {
         }
     }
 
-
-
+    public List<TransactionHistory> getTransactionHistoryByUser(String memberId) {
+        // Truy vấn danh sách giao dịch theo memberId và sắp xếp theo thời gian
+        return transactionHistoryRepo.findByMemberIdOrderByTransactionDateDesc(memberId);
+    }
 
 }
 
