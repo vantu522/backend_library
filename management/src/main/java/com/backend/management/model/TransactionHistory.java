@@ -32,6 +32,7 @@ public class TransactionHistory {
     private LocalDateTime transactionDate;
     private LocalDateTime dueDate;  // Dùng cho mượn hoặc gia hạn nếu có
     private String  status; // True là vẫn đang mượn, False là đã trả
+    private String img;
     private String description;
 //    private String state;
 
@@ -104,4 +105,6 @@ public class TransactionHistory {
 //    public void setState(String state) {
 //        this.state = state;
 //    }
+    public String getImg() { return img; }
+    public void setImg(String img) { this.img = img; }
 }

@@ -24,7 +24,8 @@ public class CustomTransactionHistoryRepoImpl implements CustomTransactionHistor
                 Aggregation.group("bookId") // Nhóm theo bookId
                         .count().as("borrowCount") // Đếm số lần mượn
                         .first("title").as("title") // Lấy tên sách
-                        .first("author").as("author"), // Lấy tác giả
+                        .first("author").as("author") // Lấy tác giả
+                        .first("img").as("img"),
                 Aggregation.sort(Sort.by(Sort.Direction.DESC, "borrowCount")), // Sắp xếp giảm dần
                 Aggregation.limit(10) // Giới hạn kết quả top 10
         );

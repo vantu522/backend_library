@@ -120,6 +120,7 @@ public class TransactionService {
         history.setTransactionDate(borrowDate);
         history.setDueDate(dueDate);
         history.setStatus("Đang chờ");
+        history.setImg(book.getImg());
         history.setDescription("Mượn sách: " + book.getTitle() + ", Hạn trả: " + dueDate);
 
         // Lưu giao dịch vào cơ sở dữ liệu
@@ -240,6 +241,7 @@ public class TransactionService {
         history.setTransactionDate(returnDate);
         history.setDueDate(returnDate);
         history.setStatus("Đã trả");
+        history.setImg(book.getImg());
         history.setDescription("Trả sách: " + book.getTitle() + ", Ngày trả: " + returnDate);
 
         // Lưu giao dịch trả sách vào cơ sở dữ liệu
@@ -319,6 +321,7 @@ public class TransactionService {
             renewTransaction.setTransactionDate(now);  // Ngày gia hạn hiện tại
             renewTransaction.setDueDate(newDueDate);  // Hạn mới
             renewTransaction.setStatus("Đang mượn");
+            renewTransaction.setImg(book.getImg());
             renewTransaction.setDescription("Gia hạn sách: " + book.getTitle() + ", Hạn mới: " + newDueDate);
 
             // Lưu giao dịch gia hạn vào cơ sở dữ liệu
@@ -360,6 +363,7 @@ public class TransactionService {
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
             transactionDetails.put("dueDate", transaction.getDueDate().toString());
             transactionDetails.put("status", transaction.getStatus());
+            transactionDetails.put("img", transaction.getImg());
             transactionDetails.put("description", transaction.getDescription());
 
             result.add(transactionDetails);
@@ -386,6 +390,7 @@ public class TransactionService {
             transactionDetails.put("dueDate", transaction.getDueDate() != null ?
             transaction.getDueDate().toString() : transaction.getTransactionDate().toString());
             transactionDetails.put("status", transaction.getStatus());
+            transactionDetails.put("img", transaction.getImg());
             transactionDetails.put("description", transaction.getDescription());
 
             result.add(transactionDetails);
@@ -412,6 +417,8 @@ public class TransactionService {
             transactionDetails.put("dueDate", transaction.getDueDate().toString());
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
             transactionDetails.put("status", transaction.getStatus());
+            transactionDetails.put("img", transaction.getImg());
+
             transactionDetails.put("description", transaction.getDescription());
 
             result.add(transactionDetails);
@@ -435,6 +442,7 @@ public class TransactionService {
             transactionDetails.put("transactionDate", transaction.getTransactionDate().toString());
             transactionDetails.put("dueDate", transaction.getDueDate().toString());
             transactionDetails.put("status", transaction.getStatus());
+            transactionDetails.put("img", transaction.getImg());
             transactionDetails.put("description", transaction.getDescription());
 
             result.add(transactionDetails);
