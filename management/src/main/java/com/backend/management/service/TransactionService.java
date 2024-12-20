@@ -303,8 +303,8 @@ public class TransactionService {
 
         long daysLeft = ChronoUnit.DAYS.between(now, dueDate);
 
-        if (daysLeft > 7) {
-            LocalDateTime newDueDate = now.plus(7, ChronoUnit.DAYS);
+        if (daysLeft < 7) {
+            LocalDateTime newDueDate = dueDate.plus(7, ChronoUnit.DAYS);
             String authorString = String.join(", ", book.getAuthor());
 
 
