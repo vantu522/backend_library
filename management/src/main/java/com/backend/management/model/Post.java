@@ -2,6 +2,7 @@ package com.backend.management.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
@@ -14,7 +15,7 @@ public class Post {
     private String author;
     private LocalDateTime createdAt;
     private String status; //( công khai hoan an)
-
+    private MultipartFile imageFile;
     public Post(String id, String title, String content, String author, LocalDateTime createdAt, String status) {
         this.id = id;
         this.title = title;
@@ -22,6 +23,14 @@ public class Post {
         this.author = author;
         this.createdAt = LocalDateTime.now();
         this.status=status;
+    }
+
+    public MultipartFile getImageFile() {
+        return imageFile;
+    }
+
+    public void setImageFile(MultipartFile imageFile) {
+        this.imageFile = imageFile;
     }
 
     public String getId() {

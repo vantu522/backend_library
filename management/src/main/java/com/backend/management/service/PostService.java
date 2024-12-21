@@ -4,6 +4,7 @@ import com.backend.management.model.Post;
 import com.backend.management.repository.PostRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,8 +14,12 @@ public class PostService {
     @Autowired
     private PostRepo postRepo;
 
+    @Autowired
+    private CloudinaryService cloudinaryService;
+
     public Post createPost(Post post){
         post.setCreatedAt(LocalDateTime.now());
+        MultipartFile imageFile = post.getImageFile();
         return postRepo.save(post);
     }
 
