@@ -29,7 +29,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: 'D:/a/backend_library/backend_library/target/*.jar'
+          path: './management/target/*.jar'
 
   deploy:
     runs-on: windows-latest
@@ -45,8 +45,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: java-app
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: Login to Azure
         uses: azure/login@v2
         with:
