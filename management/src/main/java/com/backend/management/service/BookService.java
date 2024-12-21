@@ -1,105 +1,135 @@
 package com.backend.management.service;
 
-import com.backend.management.exception.ResourceNotFoundException;
-import com.backend.management.model.Book;
-import com.backend.management.model.CategoryCount;
-import com.backend.management.model.PaginatedResponse;
-import com.backend.management.repository.BookRepo;
-import com.backend.management.utils.SlugUtil;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.UpdateOptions;
-import org.bson.Document;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.data.mongodb.core.query.Query;
-
-
-import org.springframework.data.mongodb.core.query.UpdateDefinition;
-import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.text.Normalizer;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.bson.Document;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.UpdateOptions;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.UpdateDefinition;
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.backend.management.repository.BookRepo;
+import com.backend.management.utils.SlugUtil;
+import com.backend.management.model.Book;
+import com.backend.management.model.CategoryCount;
+import com.backend.management.model.PaginatedResponse;
+import com.backend.management.exception.BookServiceException;
+import com.backend.management.exception.ResourceNotFoundException;
+
 @Service
 public class BookService {
+    private static final Logger logger = LoggerFactory.getLogger(BookService.class);
+
     @Autowired
     private BookRepo bookRepo;
 
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    // lay tat ca cac sach
-    public Page<Book> getAllBooks(int page, int size) {
+    public Page<Book> getAllBooks(int page, int size, String sortBy) {
+        if (page < 0 || size <= 0) {
+            throw new IllegalArgumentException("Page and size must be non-negative");
+        }
+
         try {
-            Pageable pageable = PageRequest.of(page, size);
+            Sort sort = Sort.by(Sort.Direction.DESC, "createdDate");
+            Pageable pageable = PageRequest.of(page, size, sort);
             return bookRepo.findAll(pageable);
         } catch (Exception e) {
-            throw new RuntimeException("Error fetching books: " + e.getMessage());
+            logger.error("Error fetching books: {}", e.getMessage(), e);
+            throw new BookServiceException("Error fetching books");
         }
     }
 
+    public Book updateBook(String bookId, Book updatedBook) {
+        try {
+            logger.info("Attempting to update book with ID: {}", bookId);
+            logger.info("Update request data: {}", updatedBook);
 
+            Book existingBook = bookRepo.findByBookId(bookId)
+                    .orElseThrow(() -> new BookServiceException("book not found with id: " + bookId));
 
-    // lay sach theo id
+            if (updatedBook.getTitle() != null) existingBook.setTitle(updatedBook.getTitle());
+            if (updatedBook.getAuthor() != null) existingBook.setAuthor(updatedBook.getAuthor());
+            if (updatedBook.getDescription() != null) existingBook.setDescription(updatedBook.getDescription());
+            if (updatedBook.getPublicationYear() != null) existingBook.setPublicationYear(updatedBook.getPublicationYear());
+            if (updatedBook.getBigCategory() != null) existingBook.setBigCategory(updatedBook.getBigCategory());
+            if (updatedBook.getQuantity() != null) existingBook.setQuantity(updatedBook.getQuantity());
+            if (updatedBook.getAvailability() != null) existingBook.setAvailability(updatedBook.getAvailability());
+            if (updatedBook.getNxb() != null) existingBook.setNxb(updatedBook.getNxb());
+            if (updatedBook.getLikedByMembers() != null) existingBook.setLikedByMembers(updatedBook.getLikedByMembers());
+            if (updatedBook.getPageCount() != null) existingBook.setPageCount(updatedBook.getPageCount());
+            if (updatedBook.getImg() != null) existingBook.setImg(updatedBook.getImg());
+
+            Book savedBook = bookRepo.save(existingBook);
+            logger.info("Book with id {} updated successfully", bookId);
+
+            return savedBook;
+        } catch (Exception e) {
+            logger.error("Error updating book with ID: {}", bookId);
+            throw new BookServiceException("Error updating book with ID: " + bookId);
+        }
+    }
+
+    public Book addBook(Book book) {
+        try {
+            if (book == null) {
+                logger.warn("Attemp to add null book");
+                throw new IllegalArgumentException("Book can not be null");
+            }
+
+            if (book.getTitle() == null || book.getTitle().isEmpty()) {
+                logger.warn("Book title is missing");
+                throw new IllegalArgumentException("Book title is required");
+            }
+
+            Book existingBook = bookRepo.findByTitleAndAuthorAndPublicationYear(
+                    book.getTitle(),
+                    book.getAuthor(),
+                    book.getPublicationYear()
+            );
+
+            if (existingBook != null) {
+                existingBook.setQuantity(existingBook.getQuantity() + 1);
+                bookRepo.save(existingBook);
+                logger.info("Book with title: {} already exists. Increased quantity by 1.", existingBook.getTitle());
+                return existingBook;
+            }
+
+            logger.info("Adding book with title: {}", book.getTitle());
+            Date now = new Date();
+            book.setCreatedDate(now);
+            Book savedBook = bookRepo.save(book);
+            logger.info("Book with title: {} add successfully. Book id: {}", savedBook.getTitle(), savedBook.getBookId());
+            return savedBook;
+        } catch (Exception Ex) {
+            logger.error("Error occurred while adding book: {}", Ex.getMessage());
+            throw new BookServiceException("Error adding book with title: {}" + book.getTitle());
+        }
+    }
+
     public Optional<Book> getBookByBookId(String bookId) {
         return bookRepo.findByBookId(bookId);
-    }
-
-    // them sach
-    public Book addBook(Book book) {
-        return bookRepo.save(book);
-    }
-
-    // lay sach theo id va cap nhat sach
-    public Book updateBook(String bookId, Book updatedBook) {
-        Book existingBook = bookRepo.findByBookId(bookId)
-                .orElseThrow(() -> new ResourceNotFoundException("book not found with id" + bookId));
-        if (updatedBook.getBookId() != null) {
-            existingBook.setBookId(updatedBook.getBookId());
-        }
-        if (updatedBook.getTitle() != null) {
-            existingBook.setTitle(updatedBook.getTitle());
-        }
-        if (updatedBook.getAuthor() != null) {
-            existingBook.setAuthor(updatedBook.getAuthor());
-        }
-        if (updatedBook.getDescription() != null) {
-            existingBook.setDescription(updatedBook.getDescription());
-        }
-        if (updatedBook.getPublicationYear() != null) {
-            existingBook.setPublicationYear(updatedBook.getPublicationYear());
-        }
-        if (updatedBook.getBigCategory() != null) {
-            existingBook.setCategory(updatedBook.getBigCategory());
-        }
-        if (updatedBook.getQuantity() != null) {
-            existingBook.setQuantity(updatedBook.getQuantity());
-        }
-        if (updatedBook.getAvailability() != null) {
-            existingBook.setAvailability(updatedBook.getAvailability());
-        }
-        if (updatedBook.getNxb() != null) {
-            existingBook.setNxb(updatedBook.getNxb());
-        }
-
-        return bookRepo.save(existingBook);
-
     }
 
     // xoa sach theo id
     public void deleteBook(String bookId) {
         bookRepo.deleteById(bookId);
     }
-
 
     // kiem tra sach co san hay hoc
     public boolean isBookAvailable(String bookId) {

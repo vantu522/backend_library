@@ -1,12 +1,17 @@
 package com.backend.management.model;
 
-import lombok.Getter;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Date;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.annotation.CreatedDate;
+
 @Getter
+@Setter
 @Document(collection = "books")
 public class Book {
     @Id
@@ -22,16 +27,26 @@ public class Book {
     private String nxb;
     private List<String> likedByMembers;
     private Integer pageCount;
-
-
-
+    @CreatedDate
+    private Date createdDate;
 
     public Book() {
     }
 
-
-    public Book(String bookId, String title, String description, List<String> author, Integer publicationYear, List<BookCategory> bigCategory, Boolean availability, Integer quantity, String img, String nxb, List<String> likedByMembers, Integer pageCount) {
-        this.bookId = bookId;
+    public Book(
+            String bookId,
+            String title,
+            String description,
+            List<String> author,
+            Integer publicationYear,
+            List<BookCategory> bigCategory,
+            Boolean availability,
+            Integer quantity,
+            String img,
+            String nxb,
+            List<String> likedByMembers,
+            Integer pageCount
+    ) { this.bookId = bookId;
         this.title = title;
         this.description = description;
         this.author = author;
@@ -45,93 +60,84 @@ public class Book {
         this.pageCount = pageCount;
     }
 
-
     public String getBookId() {
         return bookId;
+    }
+
+    public void setBookId(String bookId) {
+        this.bookId = bookId;
     }
 
     public String getTitle() {
         return title;
     }
 
-    public Integer getPageCount() {
-        return pageCount;
-    }
-
-    public void setPageCount(Integer pageCount) {
-        this.pageCount = pageCount;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public List<String> getAuthor() {
-        return author;
-    }
-
-    public Integer getPublicationYear() {
-        return publicationYear;
-    }
-
-    public List<BookCategory> getBigCategory() {
-        return bigCategory;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public String getNxb() {
-        return nxb;
-    }
-
-    public String getImg() {
-        return img;
-    }
-
-    public Boolean getAvailability() {
-        return availability;
-    }
-    public void setBookId(String bookId) {
-        this.bookId = bookId;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public List<String> getAuthor() {
+        return author;
     }
 
     public void setAuthor(List<String> author) {
         this.author = author;
     }
 
+    public Integer getPublicationYear() {
+        return publicationYear;
+    }
+
     public void setPublicationYear(Integer publicationYear) {
         this.publicationYear = publicationYear;
     }
 
-    public void setCategory(List<BookCategory> bigCategory) {
+    public List<BookCategory> getBigCategory() {
+        return bigCategory;
+    }
+
+    public void setBigCategory(List<BookCategory> bigCategory) {
         this.bigCategory = bigCategory;
     }
 
-    public void setQuantity(Integer quatity) {
-        this.quantity = quatity;
+    public Integer getQuantity() {
+        return quantity;
     }
 
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
 
-    public void setNxb(String nxb) {
-        this.nxb = nxb;
+    public Boolean getAvailability() {
+        return availability;
+    }
+
+    public void setAvailability(Boolean availability) {
+        this.availability = availability;
+    }
+
+    public String getImg() {
+        return img;
     }
 
     public void setImg(String img) {
         this.img = img;
     }
 
-    public void setAvailability(Boolean availability) {
-        this.availability = availability;
+    public String getNxb() {
+        return nxb;
+    }
+
+    public void setNxb(String nxb) {
+        this.nxb = nxb;
     }
 
     public List<String> getLikedByMembers() {
@@ -142,5 +148,19 @@ public class Book {
         this.likedByMembers = likedByMembers;
     }
 
+    public Integer getPageCount() {
+        return pageCount;
+    }
 
+    public void setPageCount(Integer pageCount) {
+        this.pageCount = pageCount;
+    }
+
+    public Date getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
+    }
 }

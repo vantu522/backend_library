@@ -14,12 +14,9 @@ public class PostService {
     @Autowired
     private PostRepo postRepo;
 
-    @Autowired
-    private CloudinaryService cloudinaryService;
 
     public Post createPost(Post post){
         post.setCreatedAt(LocalDateTime.now());
-        MultipartFile imageFile = post.getImageFile();
         return postRepo.save(post);
     }
 
