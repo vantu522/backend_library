@@ -17,6 +17,7 @@ public class BookCategoryService {
     @Autowired
     private BookRepo bookRepo;
 
+
     // lay ra cac the loai lon
     public List<String> getAllBigCategories() {
         return bookRepo.findDistinctBigCategories();
