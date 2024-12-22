@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Phản hồi từ hệ thống quản lý thư viện</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 20px;">
+<div style="max-width: 600px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+    <h2 style="color: #333; text-align: center;">Phản hồi từ hệ thống</h2>
+    <p>Xin chào <span th:text="${name}"></span>,</p>
+    <p>Cảm ơn bạn đã gửi phản hồi tới hệ thống của chúng tôi. Dưới đây là câu trả lời cho nội dung bạn đã gửi:</p>
+    <blockquote style="margin: 20px 0; padding: 10px 20px; background: #f9f9f9; border-left: 4px solid #ccc;">
+        <p><strong>Nội dung của bạn:</strong></p>
+        <p><span th:text="${userContent}"></span></p>
+    </blockquote>
+    <p><strong>Phản hồi từ chúng tôi:</strong></p>
+    <p><span th:text="${adminResponse}"></span></p>
+    <p>Chúng tôi hy vọng phản hồi này đã giải đáp được thắc mắc của bạn. Nếu bạn còn câu hỏi nào khác, đừng ngần ngại liên hệ với chúng tôi.</p>
+    <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+    <p style="color: #666; font-size: 12px;">Trân trọng,<br>Đội ngũ quản lý thư viện</p>
+</div>
+</body>
+</html>

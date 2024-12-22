@@ -95,9 +95,20 @@ public class EmailService {
         sendEmail(email, "Thông báo sách mượn quá hạn", emailContent);
     }
 
-
-
     @Async
+    public void sendFeedBackResponseEmail(String name, String email, String userContent, String adminResponse) throws MessagingException {
+        Context context = new Context();
+        context.setVariable("name", name);
+        context.setVariable("userContent", userContent);
+        context.setVariable("adminResponse", adminResponse);
+        String emailContent = templateEngine.process("email/feedback_response", context);
+        sendEmail(email, "Phản hồi từ Admin", emailContent);
+
+
+    }
+
+
+//    @Async
     // Phương thức gửi email chung
     private void sendEmail(String email, String subject, String content) throws MessagingException {
         MimeMessage mimeMessage = mailSender.createMimeMessage();

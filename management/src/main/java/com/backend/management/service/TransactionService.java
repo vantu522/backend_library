@@ -157,7 +157,7 @@ public class TransactionService {
             yeuCau.setStatus("Đang mượn");
             yeuCau.setTransactionType("Mượn");
 //            LocalDateTime ngayMuon = LocalDateTime.now();
-//            LocalDateTime ngayTra = ngayMuon.plusDays(14);
+//            LocalDateTime ngayTra = ngayMuon.plusDays(60);
 //
 //            yeuCau.setTransactionDate(ngayMuon);
 //            yeuCau.setDueDate(ngayTra);
@@ -305,8 +305,8 @@ public class TransactionService {
 
         long daysLeft = ChronoUnit.DAYS.between(now, dueDate);
 
-        if (daysLeft < 7) {
-            LocalDateTime newDueDate = dueDate.plus(7, ChronoUnit.DAYS);
+        if (daysLeft < 30) {
+            LocalDateTime newDueDate = dueDate.plus(30, ChronoUnit.DAYS);
             String authorString = String.join(", ", book.getAuthor());
 
 
