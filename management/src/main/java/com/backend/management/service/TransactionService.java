@@ -482,9 +482,9 @@ public class TransactionService {
         List<Map<String, Object>> result = new ArrayList<>();
         for (int i = 0; i < 12; i++) {
             Map<String, Object> data = new HashMap<>();
-            data.put("borrow", borrowCount[i]);  // Sửa lại key cho đúng
+            data.put("borrowed", borrowCount[i]);  // Sửa lại key cho đúng
             data.put("month", "T" + (i + 1));
-            data.put("return", returnCount[i]);  // Sửa lại key cho đúng
+            data.put("returned", returnCount[i]);  // Sửa lại key cho đúng
             result.add(data);
         }
 
