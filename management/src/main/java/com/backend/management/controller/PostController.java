@@ -88,6 +88,9 @@ public class PostController {
         postService.deletePost(id);
         return ResponseEntity.ok(" Xóa thành công");
     }
-
+    @GetMapping
+    public List<Post> getAllPosts(){
+        return postService.getPublicPosts();
+    }
 
 }
