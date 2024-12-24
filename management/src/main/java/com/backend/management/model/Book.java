@@ -1,5 +1,6 @@
 package com.backend.management.model;
 
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -18,6 +19,7 @@ public class Book {
     private List<BookCategory> bigCategory;
     private Integer quantity;
     private Boolean availability;
+    @Size(max = 5 * 1024 * 1024, message = "Image size must be less than 5MB")
     private String img;
     private String nxb;
     private List<String> likedByMembers;

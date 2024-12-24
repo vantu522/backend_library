@@ -16,7 +16,7 @@ public class FeedbackService {
     private EmailService emailService;
 
     public Feedback submitFeedback(Feedback feedback) {
-        feedback.setStatus("New");
+        feedback.setStatus("Pending");
         feedback.setCreatedAt(LocalDateTime.now());
         return feedbackRepo.save(feedback);
     }
@@ -30,25 +30,54 @@ public class FeedbackService {
     }
 
     public Feedback respondToFeedback(String id, String response) {
+        Feedback feedback = new Feedback(); // Khởi tạo phản hồi mặc định
         try {
-            Feedback feedback = feedbackRepo.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy phản hồi "));
-            if ("Responded".equals(feedback.getStatus())) {
-                throw new RuntimeException("Feedback đã được phản hồi ");
+            // Tìm phản hồi theo id
+            feedback = feedbackRepo.findById(id).orElse(null);
+            if (feedback == null) {
+                System.err.println("Không tìm thấy phản hồi với id: " + id);
+                feedback.setStatus("Error");
+                feedback.setResponse("Không tìm thấy phản hồi");
+                return feedback; // Trả về lỗi không tìm thấy
             }
+
+            // Kiểm tra trạng thái phản hồi
+            if ("Responded".equals(feedback.getStatus())) {
+                System.err.println("Feedback đã được phản hồi với id: " + id);
+                feedback.setStatus("Error");
+                feedback.setResponse("Feedback đã được phản hồi");
+                return feedback; // Trả về lỗi đã được phản hồi
+            }
+
+            // Cập nhật phản hồi
             feedback.setResponse(response);
             feedback.setStatus("Responded");
             feedback.setRespondedAt(LocalDateTime.now());
             feedbackRepo.save(feedback);
 
             // Gửi phản hồi qua email
-            emailService.sendFeedBackResponseEmail(feedback.getEmail(), feedback.getName(), feedback.getContent(), response);
+            try {
+                emailService.sendFeedBackResponseEmail(feedback.getName(), feedback.getEmail(), feedback.getContent(), response);
+            } catch (Exception emailException) {
+                System.err.println("Không thể gửi email phản hồi: " + emailException.getMessage());
+                feedback.setStatus("Error");
+                feedback.setResponse("Không thể gửi email phản hồi");
+                return feedback; // Trả về lỗi gửi email
+            }
 
-            return feedback;
+        } catch (RuntimeException e) {
+            System.err.println("Lỗi xử lý phản hồi: " + e.getMessage());
+            feedback.setStatus("Error");
+            feedback.setResponse("Lỗi trong quá trình xử lý phản hồi");
         } catch (Exception e) {
-            // Log lỗi chi tiết và trả về lỗi
-            System.err.println("Error processing feedback: " + e.getMessage());
-            throw new RuntimeException("Internal Server Error");
+            System.err.println("Lỗi không xác định: " + e.getMessage());
+            feedback.setStatus("Error");
+            feedback.setResponse("Đã xảy ra lỗi không xác định");
         }
+
+        return feedback;
     }
 
 }
+
+

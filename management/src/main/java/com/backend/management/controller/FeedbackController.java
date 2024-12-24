@@ -21,7 +21,7 @@ public class FeedbackController {
     @GetMapping
     public List<Feedback> getFeedbacksByStatus(@RequestParam(required = false) String status) {
         if (status == null) {
-            return feedbackService.getFeedbacksByStatus("New");
+            return feedbackService.getFeedbacksByStatus("Pending");
         }
         return feedbackService.getFeedbacksByStatus(status);
     }
