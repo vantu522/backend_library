@@ -13,6 +13,7 @@ public class Post {
     private String content;
     private String author;
     private LocalDateTime createdAt;
+    private String img;
     private String status; //( công khai hoan an)
 
     public Post(String id, String title, String content, String author, LocalDateTime createdAt, String status) {
@@ -21,6 +22,7 @@ public class Post {
         this.content = content;
         this.author = author;
         this.createdAt = LocalDateTime.now();
+        this.img = img;
         this.status=status;
     }
 
@@ -70,5 +72,13 @@ public class Post {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getImg() {
+        return img;
+    }
+
+    public void setImg(String img) {
+        this.img = img;
     }
 }

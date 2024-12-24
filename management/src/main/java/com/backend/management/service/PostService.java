@@ -30,6 +30,7 @@ public class PostService {
         post.setAuthor(postDetails.getAuthor());
         post.setContent(postDetails.getContent());
         post.setStatus(postDetails.getStatus());
+        post.setImg(postDetails.getImg());
 
         return postRepo.save(post);
     }
