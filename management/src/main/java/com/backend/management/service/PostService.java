@@ -3,6 +3,7 @@ package com.backend.management.service;
 import com.backend.management.model.Post;
 import com.backend.management.repository.PostRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,7 +20,8 @@ public class PostService {
     }
 
     public List<Post> getPublicPosts() {
-        return postRepo.findByStatus("công khai"); // Trả về các bài viết công khai
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        return postRepo.findByStatus("công khai", sort); // Returns public posts sorted by createdAt
     }
 
     public Post updatePost(String id, Post postDetails){
@@ -35,13 +37,9 @@ public class PostService {
         return postRepo.save(post);
     }
 
-
     public void deletePost(String id){
         Post post = postRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("not found with id"+ id));
         postRepo.delete(post);
     }
-
-
-
 }
