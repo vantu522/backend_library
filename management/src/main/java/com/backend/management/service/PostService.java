@@ -1,7 +1,6 @@
 package com.backend.management.service;
 
 import com.backend.management.exception.ImageValidationException;
-import com.backend.management.model.Book;
 import com.backend.management.model.Post;
 import com.backend.management.repository.PostRepo;
 import org.springframework.beans.factory.annotation.Autowired;

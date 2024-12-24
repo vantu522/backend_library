@@ -7,14 +7,9 @@ import com.backend.management.model.BookCategory;
 import com.backend.management.model.PaginatedResponse;
 import com.backend.management.service.BookCategoryService;
 import com.backend.management.service.BookService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/books")
@@ -127,7 +121,7 @@ public class BookController {
             // Cập nhật book thông qua bookService
             Book book = bookService.updateBook(bookId, updatedBook, image);
             return ResponseEntity.ok(book);
-        } catch (BookService.ImageValidationException e) {
+        } catch (ImageValidationException e) {
             return ResponseEntity.badRequest().build();
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
