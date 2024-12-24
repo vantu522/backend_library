@@ -69,6 +69,7 @@ public class PostController {
             updatedPost.setTitle((String) postMap.get("title"));
             updatedPost.setContent((String) postMap.get("content"));
             updatedPost.setAuthor((String) postMap.get("author")); // Với danh sách String
+            updatedPost.setStatus((String) postMap.get("status"));
 
 
             // Cập nhật book thông qua bookService
