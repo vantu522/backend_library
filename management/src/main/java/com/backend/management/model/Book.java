@@ -144,5 +144,7 @@ public class Book {
         this.likedByMembers = likedByMembers;
     }
 
-
+    public void setBigCategory(List<BookCategory> bigCategory) {
+        this.bigCategory = bigCategory;
+    }
 }

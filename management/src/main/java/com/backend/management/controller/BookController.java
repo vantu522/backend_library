@@ -8,6 +8,7 @@ import com.backend.management.model.PaginatedResponse;
 import com.backend.management.service.BookCategoryService;
 import com.backend.management.service.BookService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -64,21 +65,40 @@ public class BookController {
     }
 
     //them sach
+
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Book> addBook(
             @RequestPart("book") String bookJson,
             @RequestPart(value = "image", required = false) MultipartFile image) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            Book book = mapper.readValue(bookJson, Book.class);
+            Gson gson = new Gson();
+
+            // Chuyển JSON sang HashMap
+            Map<String, Object> bookMap = gson.fromJson(bookJson, Map.class);
+
+            // Gán các giá trị cho đối tượng Book
+            Book book = new Book();
+            book.setTitle((String) bookMap.get("title"));
+            book.setDescription((String) bookMap.get("description"));
+            book.setAuthor((List<String>) bookMap.get("author")); // Với danh sách String
+            book.setPublicationYear(((Number) bookMap.get("publicationYear")).intValue());
+            book.setBigCategory((List<BookCategory>) bookMap.get("bigCategory")); // Với danh sách BookCategory
+            book.setQuantity(((Number) bookMap.get("quantity")).intValue());
+            book.setAvailability((Boolean) bookMap.get("availability"));
+            book.setNxb((String) bookMap.get("nxb"));
+            book.setLikedByMembers((List<String>) bookMap.get("likedByMembers"));
+            book.setPageCount(((Number) bookMap.get("pageCount")).intValue());
+
             Book savedBook = bookService.addBook(book, image);
             return ResponseEntity.ok(savedBook);
         } catch (ImageValidationException e) {
             return ResponseEntity.badRequest().build();
-        } catch (IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 
     @PutMapping(value = "/update/{bookId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Book> updateBook(
@@ -86,8 +106,25 @@ public class BookController {
             @RequestPart("book") String bookJson,
             @RequestPart(value = "image", required = false) MultipartFile image) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            Book updatedBook = mapper.readValue(bookJson, Book.class);
+            Gson gson = new Gson();
+
+            // Chuyển JSON sang HashMap
+            Map<String, Object> bookMap = gson.fromJson(bookJson, Map.class);
+
+            // Gán các giá trị cho đối tượng Book
+            Book updatedBook = new Book();
+            updatedBook.setTitle((String) bookMap.get("title"));
+            updatedBook.setDescription((String) bookMap.get("description"));
+            updatedBook.setAuthor((List<String>) bookMap.get("author")); // Với danh sách String
+            updatedBook.setPublicationYear(((Number) bookMap.get("publicationYear")).intValue());
+            updatedBook.setBigCategory((List<BookCategory>) bookMap.get("bigCategory")); // Với danh sách BookCategory
+            updatedBook.setQuantity(((Number) bookMap.get("quantity")).intValue());
+            updatedBook.setAvailability((Boolean) bookMap.get("availability"));
+            updatedBook.setNxb((String) bookMap.get("nxb"));
+            updatedBook.setLikedByMembers((List<String>) bookMap.get("likedByMembers"));
+            updatedBook.setPageCount(((Number) bookMap.get("pageCount")).intValue());
+
+            // Cập nhật book thông qua bookService
             Book book = bookService.updateBook(bookId, updatedBook, image);
             return ResponseEntity.ok(book);
         } catch (BookService.ImageValidationException e) {
@@ -96,6 +133,7 @@ public class BookController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 
     @GetMapping("/{bookId}/image")
     public ResponseEntity<String> getBookImage(@PathVariable String bookId) {

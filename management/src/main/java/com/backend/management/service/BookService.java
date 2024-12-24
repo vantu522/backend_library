@@ -1,5 +1,6 @@
 package com.backend.management.service;
 
+import com.backend.management.exception.ImageValidationException;
 import com.backend.management.exception.ResourceNotFoundException;
 import com.backend.management.model.Book;
 import com.backend.management.model.CategoryCount;
@@ -208,11 +209,7 @@ public class BookService {
         Query query = new Query(Criteria.where("bigCategory.name").is(bigCategoryName));
         mongoTemplate.remove(query,Book.class);
     }
-    public class ImageValidationException extends RuntimeException {
-        public ImageValidationException(String message) {
-            super(message);
-        }
-    }
+
     public void validateAndSetImage(Book book, MultipartFile image) throws IOException {
         validateImage(image);
         byte[] compressedImageBytes = compressImage(image);
