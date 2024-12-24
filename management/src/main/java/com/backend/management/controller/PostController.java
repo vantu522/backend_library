@@ -1,6 +1,8 @@
 package com.backend.management.controller;
 
 import com.backend.management.exception.ImageValidationException;
+import com.backend.management.model.Book;
+import com.backend.management.model.BookCategory;
 import com.backend.management.model.Post;
 import com.backend.management.service.PostService;
 import com.google.gson.Gson;
@@ -12,7 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/posts")
@@ -24,47 +28,59 @@ public class PostController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Post> createPost(
             @RequestPart("post") String postJson,
-            @RequestPart(value = "img", required = false) MultipartFile img) {
+            @RequestPart(value = "image", required = false) MultipartFile img) {
         try {
-            // Chuyển JSON sang đối tượng Post
+            // Chuyển JSON sang HashMap
             Gson gson = new Gson();
-            Post postDetails = gson.fromJson(postJson, Post.class);
+            Map<String, Object> postMap = gson.fromJson(postJson, Map.class);
+
+            // Gán các giá trị cho đối tượng Post
+            Post post = new Post();
+            post.setTitle((String) postMap.get("title"));
+            post.setContent((String) postMap.get("content"));
+            post.setAuthor((String) postMap.get("author"));
+            post.setCreatedAt(LocalDateTime.now()); // Thiết lập thời gian hiện tại
+            post.setImg("");
+            post.setStatus((String) postMap.get("status"));
 
             // Gọi service để xử lý tạo bài viết
-            Post createdPost = postService.createPost(postDetails, img);
+            Post createdPost = postService.createPost(post, img);
             return ResponseEntity.ok(createdPost);
         } catch (ImageValidationException e) {
-            return ResponseEntity.badRequest().body(null); // Lỗi ảnh không hợp lệ
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // Lỗi hệ thống
+            return ResponseEntity.badRequest().build(); // Lỗi ảnh không hợp lệ
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // Lỗi hệ thống
         }
-    }
-
-
-    @GetMapping
-    public List<Post> getAllPosts(){
-        return postService.getPublicPosts();
     }
 
     @PutMapping(value = "/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Post> updatePost(
             @PathVariable String id,
             @RequestPart("post") String postJson,
-            @RequestPart(value = "img", required = false) MultipartFile img) {
+            @RequestPart(value = "image", required = false) MultipartFile img) {
         try {
-            // Chuyển đổi JSON sang đối tượng Post
             Gson gson = new Gson();
-            Post postDetails = gson.fromJson(postJson, Post.class);
 
-            // Gọi service để cập nhật Post
-            Post updatedPost = postService.updatePost(id, postDetails, img);
+            // Chuyển JSON sang HashMap
+            Map<String, Object> postMap = gson.fromJson(postJson, Map.class);
+
+            // Gán các giá trị cho đối tượng Book
+            Post updatedPost = new Post();
+            updatedPost.setTitle((String) postMap.get("title"));
+            updatedPost.setContent((String) postMap.get("content"));
+            updatedPost.setAuthor((String) postMap.get("author")); // Với danh sách String
+
+
+            // Cập nhật book thông qua bookService
+            Post updatePost = postService.updatePost(id, updatedPost, img);
             return ResponseEntity.ok(updatedPost);
         } catch (ImageValidationException e) {
-            return ResponseEntity.badRequest().body(null);
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.badRequest().build(); // Lỗi ảnh không hợp lệ
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // Lỗi hệ thống
         }
     }
+
 
 
     @DeleteMapping("/delete/{id}")

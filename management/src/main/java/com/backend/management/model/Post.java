@@ -16,6 +16,10 @@ public class Post {
     private String img;
     private String status; //( công khai hoan an)
 
+
+    public Post() {
+    }
+
     public Post(String id, String title, String content, String author, LocalDateTime createdAt, String status) {
         this.id = id;
         this.title = title;
