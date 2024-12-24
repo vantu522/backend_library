@@ -1,5 +1,6 @@
 package com.backend.management.service;
 
+import com.backend.management.exception.EntityNotFoundException;
 import com.backend.management.exception.ImageValidationException;
 import com.backend.management.model.Post;
 import com.backend.management.repository.PostRepo;
@@ -61,11 +62,32 @@ public class PostService {
     }
 
 
-    public void deletePost(String id){
+    public void deletePost(String id) {
+        if (id == null || id.isEmpty()) {
+            System.err.println("Lỗi: ID không được để trống");
+            throw new IllegalArgumentException("ID không được để trống");
+        }
+
+        System.out.println("Bắt đầu tìm bài viết với ID: " + id);
+
         Post post = postRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("not found with id"+ id));
-        postRepo.delete(post);
+                .orElseThrow(() -> {
+                    System.err.println("Lỗi: Không tìm thấy bài viết với ID: " + id);
+                    return new EntityNotFoundException("Không tìm thấy bài viết với id: " + id);
+                });
+
+        System.out.println("Tìm thấy bài viết: " + post);
+
+        try {
+            postRepo.delete(post);
+            System.out.println("Đã xóa bài viết với ID: " + id);
+        } catch (Exception e) {
+            System.err.println("Lỗi khi xóa bài viết với ID: " + id);
+            e.printStackTrace(); // In stack trace đầy đủ vào log
+            throw new RuntimeException("Đã xảy ra lỗi khi xóa bài viết");
+        }
     }
+
     public void validateAndSetImage(Post post, MultipartFile image) throws IOException {
         validateImage(image);
         byte[] compressedImageBytes = compressImage(image);

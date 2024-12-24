@@ -1,5 +1,6 @@
 package com.backend.management.controller;
 
+import com.backend.management.exception.EntityNotFoundException;
 import com.backend.management.exception.ImageValidationException;
 import com.backend.management.model.Book;
 import com.backend.management.model.BookCategory;
@@ -85,9 +86,15 @@ public class PostController {
 
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deletePost(@PathVariable String id){
-        postService.deletePost(id);
-        return ResponseEntity.ok(" Xóa thành công");
+    public ResponseEntity<?> deletePost(@PathVariable String id) {
+        try {
+            postService.deletePost(id);
+            return ResponseEntity.ok("Xóa thành công");
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Đã xảy ra lỗi!");
+        }
     }
     @GetMapping
     public List<Post> getAllPosts(){
