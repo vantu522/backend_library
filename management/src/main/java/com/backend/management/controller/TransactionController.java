@@ -170,4 +170,8 @@ public class TransactionController {
         List<TransactionHistory> transactionHistory = transactionService.getTransactionHistoryByUser(memberId);
         return ResponseEntity.ok(transactionHistory);
     }
+    @DeleteMapping("/delete/{id}")
+    public void deletePendingTransactions(String id) {
+        transactionService.deletePendingBorrowRequest(id);
+    }
 }

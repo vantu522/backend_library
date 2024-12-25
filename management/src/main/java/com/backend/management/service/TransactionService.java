@@ -565,6 +565,15 @@ public class TransactionService {
         // Truy vấn danh sách giao dịch theo memberId và sắp xếp theo thời gian
         return transactionHistoryRepo.findByMemberIdOrderByTransactionDateDesc(memberId);
     }
+    public void deletePendingBorrowRequest(String id) {
+        TransactionHistory transactionHistory = transactionHistoryRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Borrow request not found"));
 
+        if (!"Pending".equals(transactionHistory.getStatus())) {
+            throw new RuntimeException("Only requests with status 'Pending' can be deleted");
+        }
+
+        transactionHistoryRepo.delete(transactionHistory);
+    }
 }
 

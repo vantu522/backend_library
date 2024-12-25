@@ -77,7 +77,10 @@ public class FeedbackService {
 
         return feedback;
     }
+    public void deleteFeedback(String id) {
+        feedbackRepo.deleteById(id);
 
+    }
 }
 
 
